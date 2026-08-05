@@ -1,0 +1,12 @@
+{
+  "name": "@gitee/gitee-cli-linux-amd64",
+  "version": "0.0.0",
+  "description": "Gitee CLI — linux amd64 binary",
+  "os": ["linux"],
+  "cpu": ["x64"],
+  "files": ["bin/", "LICENSE"],
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
+}

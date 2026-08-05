@@ -1,0 +1,156 @@
+package i18n
+
+var en = map[string]string{
+	// common
+	"no_results":   "No results found",
+	"aborted":      "Aborted",
+	"validating":   "Validating token...",
+	"title_prompt": "Title:",
+	"open_editor":  "Opening editor for description (leave empty to skip)...",
+
+	// auth
+	"auth.need_token":         "You need a Personal Access Token from %s.",
+	"auth.how_to_auth":        "How would you like to authenticate?",
+	"auth.open_browser":       "Open browser to create a token",
+	"auth.paste_token":        "Paste token directly",
+	"auth.opening_url":        "\nOpening %s ...\n",
+	"auth.browser_failed":     "Could not open browser. Please visit:\n  %s\n",
+	"auth.paste_token_prompt": "Paste your token:",
+	"auth.validating":         "Validating token...",
+	"auth.logged_in":          "Logged in to %s as %s (%s)\n",
+	"auth.logged_out":         "Logged out of %s\n",
+	"auth.logged_out_default": "Logged out\n",
+	"auth.not_logged_in":      "%s: not logged in. Run `gitee auth login` to authenticate.\n",
+	"auth.other_hosts":        "\nOther configured hosts:",
+
+	// pr
+	"pr.title_prompt":           "Title:",
+	"pr.base_prompt":            "Base branch (head: %s):",
+	"pr.open_editor":            "Opening editor for PR description (leave empty to skip)...\n",
+	"pr.assignees_prompt":       "Reviewers (comma-separated, optional):",
+	"pr.testers_prompt":         "Testers (comma-separated, optional):",
+	"pr.confirm_create":         "Create pull request?",
+	"pr.created":                "Created PR #%d: %s\n",
+	"pr.closed":                 "Closed PR #%d\n",
+	"pr.reopened":               "Reopened PR #%d\n",
+	"pr.merged":                 "Merged PR #%d\n",
+	"pr.approved":               "Approved PR #%d\n",
+	"pr.reviewed_commented":     "Commented on PR #%d\n",
+	"pr.review_action_prompt":   "Review action:",
+	"pr.review_approve":         "Approve",
+	"pr.review_approve_comment": "Approve and leave a comment",
+	"pr.review_comment_only":    "Leave a comment only (no approval)",
+	"pr.comment_added":          "Added comment #%d to PR #%d\n",
+	"pr.no_results":             "No pull requests found",
+	"pr.ai_use_as_is":           "Use as-is",
+	"pr.ai_edit":                "Edit in editor",
+	"pr.ai_regenerate":          "Regenerate",
+	"pr.ai_write_manually":      "Write manually",
+	"pr.ai_cancel":              "Cancel",
+	"pr.ai_what_to_do":          "What would you like to do?",
+	"pr.ai_regenerating":        "✦ Regenerating with %s...\n",
+
+	// issue
+	"issue.title_prompt":      "Title:",
+	"issue.edit_title_prompt": "Title (leave empty to keep current):",
+	"issue.open_editor":       "Opening editor for issue description (leave empty to skip)...\n",
+	"issue.assignee_prompt":   "Assignee (optional):",
+	"issue.labels_prompt":     "Labels (comma-separated, optional):",
+	"issue.confirm_create":    "Create issue?",
+	"issue.confirm_edit":      "Save changes?",
+	"issue.created":           "Created issue #%s: %s\n",
+	"issue.closed":            "Closed issue #%s\n",
+	"issue.reopened":          "Reopened issue #%s\n",
+	"issue.assigned":          "Assigned issue #%s to %s\n",
+	"issue.comment_added":     "Added comment #%d to issue #%s\n",
+	"issue.no_results":        "No issues found",
+	"issue.updated":           "Updated issue #%s: %s\n",
+	"issue.ai_describe":       "Describe the issue in one or two sentences:",
+	"issue.ai_expanding":      "✦ Expanding with %s...\n",
+	"issue.ai_regenerating":   "✦ Regenerating...\n",
+	"issue.ai_what_to_do":     "What would you like to do?",
+	"issue.ai_use_as_is":      "Use as-is",
+	"issue.ai_edit":           "Edit in editor",
+	"issue.ai_regenerate":     "Regenerate",
+	"issue.ai_write_manually": "Write manually",
+	"issue.ai_cancel":         "Cancel",
+
+	// repo
+	"repo.no_results":     "No repositories found",
+	"repo.created":        "Created repository %s: %s\n",
+	"repo.deleted":        "Deleted %s\n",
+	"repo.forked":         "Forked to %s: %s\n",
+	"repo.delete_confirm": "Delete repository %s? This cannot be undone.",
+
+	// release
+	"release.no_results":     "No releases found",
+	"release.created":        "Created release %s: %s\n",
+	"release.deleted":        "Deleted release %s\n",
+	"release.delete_confirm": "Delete release %s?",
+
+	// gist
+	"gist.no_results":     "No gists found",
+	"gist.created":        "Created gist %s: %s\n",
+	"gist.deleted":        "Deleted gist %s\n",
+	"gist.delete_confirm": "Delete gist %s?",
+
+	// ssh-key
+	"sshkey.no_results":     "No SSH keys found",
+	"sshkey.added":          "Added SSH key (id: %d)\n",
+	"sshkey.deleted":        "Deleted SSH key %d\n",
+	"sshkey.delete_confirm": "Delete SSH key %d? This cannot be undone.",
+
+	// alias
+	"alias.no_results": "No aliases configured",
+	"alias.added":      "Added alias: %s → %s\n",
+	"alias.deleted":    "Deleted alias: %s\n",
+
+	// user
+	"user.no_results": "No users found",
+
+	"form.issue.title":         "Title",
+	"form.issue.title_desc":    "Issue title (required)",
+	"form.issue.body":          "Description",
+	"form.issue.body_desc":     "Issue body (optional, supports Markdown)",
+	"form.issue.assignee":      "Assignee",
+	"form.issue.assignee_desc": "Username to assign (optional)",
+	"form.issue.labels":        "Labels",
+	"form.issue.labels_select": "Select labels (optional)",
+	"form.issue.labels_input":  "Comma-separated label names (optional)",
+	"form.pr.title":            "Title",
+	"form.pr.title_desc":       "Pull request title (required)",
+	"form.pr.body":             "Description",
+	"form.pr.body_desc":        "PR body (optional, supports Markdown)",
+	"form.pr.base":             "Base Branch",
+	"form.pr.base_desc":        "Branch to merge into (head: %s)",
+	"form.pr.assignees":        "Reviewers",
+	"form.pr.assignees_desc":   "Comma-separated reviewer usernames (optional)",
+	"form.pr.testers":          "Testers",
+	"form.pr.testers_desc":     "Comma-separated tester usernames (optional)",
+	"form.pr.draft":            "Draft PR?",
+
+	// do
+	"do.usage_hint":          "Please provide a command description, e.g.: gitee do \"create a PR\"",
+	"do.interactive_hint":    "Or use -i for interactive mode: gitee do -i",
+	"do.understanding":       "\n  🧠 Understanding...\n",
+	"do.generate_failed":     "  ❌ Generation failed: %v\n",
+	"do.unrecognized_intent": "  ❌ Could not recognize intent: %s\n",
+	"do.will_execute_single": "\n  📋 Will execute: %s\n",
+	"do.will_execute_multi":  "\n  📋 Will execute %d commands in order:\n",
+	"do.low_confidence":      "\n  ⚠️  Low confidence, please verify carefully\n",
+	"do.dangerous_confirm":   "\n  ⚠️  Command includes irreversible operation\n  Type 'yes' to confirm: ",
+	"do.cancelled":           "  Cancelled",
+	"do.confirm_execute":     "\n  Confirm execution? (Y)execute (n)cancel (e)edit: ",
+	"do.execute_failed":      "\n  ❌ Command execution failed: %v\n",
+	"do.interactive_welcome": "\n🧠 Gitee Smart Assistant (type exit to quit)\n\n",
+	"do.edit_prompt":         "  📝 Edit command: ",
+
+	// ai
+	"ai.usage_hint": "Please enter a question, e.g.: gitee ai \"What is a Pull Request\"",
+
+	// form.release
+	"form.release.tag":       "Tag",
+	"form.release.name":      "Release name",
+	"form.release.name_desc": "Defaults to tag name if empty",
+	"form.release.body":      "Description",
+}

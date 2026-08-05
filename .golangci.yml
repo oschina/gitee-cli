@@ -1,0 +1,24 @@
+run:
+  timeout: 5m
+
+linters:
+  enable:
+    - errcheck
+    - goimports
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - typecheck
+    - unused
+    - gocritic
+
+linters-settings:
+  goimports:
+    local-prefixes: gitee.com/oschina/gitee-cli
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - errcheck

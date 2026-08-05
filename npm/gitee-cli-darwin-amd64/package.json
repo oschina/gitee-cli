@@ -1,0 +1,12 @@
+{
+  "name": "@gitee/gitee-cli-darwin-amd64",
+  "version": "0.0.0",
+  "description": "Gitee CLI — darwin amd64 binary",
+  "os": ["darwin"],
+  "cpu": ["x64"],
+  "files": ["bin/", "LICENSE"],
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
+}

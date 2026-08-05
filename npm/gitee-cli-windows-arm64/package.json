@@ -1,0 +1,12 @@
+{
+  "name": "@gitee/gitee-cli-windows-arm64",
+  "version": "0.0.0",
+  "description": "Gitee CLI — windows arm64 binary",
+  "os": ["win32"],
+  "cpu": ["arm64"],
+  "files": ["bin/", "LICENSE"],
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
+}

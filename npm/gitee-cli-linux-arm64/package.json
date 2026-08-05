@@ -1,0 +1,12 @@
+{
+  "name": "@gitee/gitee-cli-linux-arm64",
+  "version": "0.0.0",
+  "description": "Gitee CLI — linux arm64 binary",
+  "os": ["linux"],
+  "cpu": ["arm64"],
+  "files": ["bin/", "LICENSE"],
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
+}

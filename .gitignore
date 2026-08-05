@@ -1,0 +1,31 @@
+# Build output
+/bin/
+dist/
+
+# Go test / coverage
+*.test
+*.out
+
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Internal planning docs
+PRD.md
+.omo/
+
+# Cross-platform binaries (from build-all-platforms)
+/gitee-cli-darwin-*
+/gitee-cli-linux-*
+/gitee-cli-windows-*
+/gitee-darwin-*
+/gitee-linux-*
+/gitee-windows-*
+
+# npm platform binaries (should be built, not committed)
+/npm/gitee-cli-*/bin/
+.npmrc

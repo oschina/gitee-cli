@@ -1,0 +1,46 @@
+{
+  "name": "@gitee/gitee-cli",
+  "version": "0.0.0",
+  "description": "Gitee CLI — work with Gitee from the terminal",
+  "main": "bin/index.js",
+  "bin": {
+    "gitee": "bin/index.js"
+  },
+  "files": [
+    "bin/",
+    "README.md",
+    "LICENSE"
+  ],
+  "optionalDependencies": {
+    "@gitee/gitee-cli-darwin-amd64": "0.0.0",
+    "@gitee/gitee-cli-darwin-arm64": "0.0.0",
+    "@gitee/gitee-cli-linux-amd64": "0.0.0",
+    "@gitee/gitee-cli-linux-arm64": "0.0.0",
+    "@gitee/gitee-cli-windows-amd64": "0.0.0",
+    "@gitee/gitee-cli-windows-arm64": "0.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitee.com/oschina/gitee-cli.git"
+  },
+  "keywords": [
+    "gitee",
+    "cli",
+    "git",
+    "pull-request",
+    "issue",
+    "devops"
+  ],
+  "author": {
+    "name": "Gitee",
+    "url": "https://gitee.com/oschina"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://gitee.com/oschina/gitee-cli/issues"
+  },
+  "homepage": "https://gitee.com/oschina/gitee-cli#readme",
+  "publishConfig": {
+    "access": "public"
+  }
+}
