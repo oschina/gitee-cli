@@ -24,6 +24,8 @@ func newIssueListCmd(f *cmdutil.Factory) *cobra.Command {
 		labels     string
 		query      string
 		assignee   string
+		sort       string
+		direction  string
 		limit      int
 		page       int
 		jsonFields string
@@ -37,6 +39,7 @@ func newIssueListCmd(f *cmdutil.Factory) *cobra.Command {
 		Example: `  gitee issue list
   gitee issue list -s open
   gitee issue list --labels bug,urgent -A alice
+  gitee issue list --sort updated --direction desc
   gitee issue list --json=number,title,state
   gitee issue list --json=fields`,
 		Args: cobra.NoArgs,
@@ -51,12 +54,14 @@ func newIssueListCmd(f *cmdutil.Factory) *cobra.Command {
 			}
 
 			issues, err := client.ListRepoIssues(f.Context, owner, repo, &gitee.ListIssuesParams{
-				State:    state,
-				Labels:   labels,
-				Q:        query,
-				Assignee: assignee,
-				Page:     page,
-				PerPage:  limit,
+				State:     state,
+				Labels:    labels,
+				Q:         query,
+				Assignee:  assignee,
+				Sort:      sort,
+				Direction: direction,
+				Page:      page,
+				PerPage:   limit,
 			})
 			if err != nil {
 				return fmt.Errorf("failed to list issues: %w", err)
@@ -103,6 +108,8 @@ func newIssueListCmd(f *cmdutil.Factory) *cobra.Command {
 	cmd.Flags().StringVar(&labels, "labels", "", "Filter by labels (comma-separated)")
 	cmd.Flags().StringVar(&query, "query", "", "Search keyword")
 	cmd.Flags().StringVarP(&assignee, "assignee", "A", "", "Filter by assignee username")
+	cmd.Flags().StringVar(&sort, "sort", "created", "Sort by: created, updated")
+	cmd.Flags().StringVar(&direction, "direction", "desc", "Sort direction: asc, desc")
 	cmd.Flags().IntVarP(&limit, "limit", "l", 20, "Number of issues per page")
 	cmd.Flags().IntVarP(&page, "page", "p", 1, "Page number")
 	cmd.Flags().StringVarP(&jsonFields, "json", "j", "", cmdutil.JSONFlagHelp[gitee.Issue]())

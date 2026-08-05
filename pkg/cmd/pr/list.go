@@ -115,7 +115,7 @@ func newPRListCmd(f *cmdutil.Factory) *cobra.Command {
 	cmd.Flags().IntVarP(&page, "page", "p", 1, "Page number")
 	cmd.Flags().StringVar(&head, "head", "", "Filter by head branch")
 	cmd.Flags().StringVar(&base, "base", "", "Filter by base branch")
-	cmd.Flags().StringVar(&sort, "sort", "created", "Sort by field")
+	cmd.Flags().StringVar(&sort, "sort", "created", "Sort by: created, updated, popularity, long-running")
 	cmd.Flags().StringVar(&since, "since", "", "Filter by updated since time (ISO 8601)")
 	cmd.Flags().StringVar(&direction, "direction", "desc", "Sort direction: asc, desc")
 	cmd.Flags().IntVar(&milestoneNumber, "milestone-number", 0, "Filter by milestone number")

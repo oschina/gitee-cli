@@ -116,12 +116,23 @@ func TestListRepoIssues_withFilters(t *testing.T) {
 		if q.Get("assignee") != "bob" {
 			t.Errorf("expected assignee=bob")
 		}
+		if q.Get("sort") != "updated" {
+			t.Errorf("expected sort=updated")
+		}
+		if q.Get("direction") != "asc" {
+			t.Errorf("expected direction=asc")
+		}
 		json.NewEncoder(w).Encode([]Issue{})
 	}))
 	defer srv.Close()
 
 	c := NewClient("tok", WithBaseURL(srv.URL))
-	_, err := c.ListRepoIssues(context.Background(), "owner", "repo", &ListIssuesParams{State: "closed", Assignee: "bob"})
+	_, err := c.ListRepoIssues(context.Background(), "owner", "repo", &ListIssuesParams{
+		State:     "closed",
+		Assignee:  "bob",
+		Sort:      "updated",
+		Direction: "asc",
+	})
 	if err != nil {
 		t.Fatal(err)
 	}

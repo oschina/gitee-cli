@@ -48,6 +48,29 @@ func TestIssueListCmd_empty(t *testing.T) {
 	}
 }
 
+func TestIssueListCmd_sort(t *testing.T) {
+	out, err := runIssueCmd([]string{
+		"list",
+		"-R", "owner/repo",
+		"--sort", "updated",
+		"--direction", "asc",
+	}, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if got := r.URL.Query().Get("sort"); got != "updated" {
+			t.Errorf("expected sort=updated, got %q", got)
+		}
+		if got := r.URL.Query().Get("direction"); got != "asc" {
+			t.Errorf("expected direction=asc, got %q", got)
+		}
+		json.NewEncoder(w).Encode([]gitee.Issue{})
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(out, "No issues found") && !strings.Contains(out, "未找到任何 Issue") {
+		t.Errorf("expected empty message, got: %s", out)
+	}
+}
+
 func TestIssueCloseCmd(t *testing.T) {
 	called := false
 	out, err := runIssueCmd([]string{"close", "IJEE5", "-R", "owner/repo"}, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

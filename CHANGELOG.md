@@ -9,6 +9,7 @@ format follows Keep a Changelog, and releases use Semantic Versioning.
 
 - Core Gitee workflows for pull requests, issues, repositories, releases,
   gists, SSH keys, users, and raw API requests.
+- Issue list sorting by creation or update time in ascending or descending order.
 - Interactive terminal tables, pagers, themes, and optional image rendering.
 - JSON output and non-interactive flags for scripting and CI environments.
 - Multi-host authentication for gitee.com and private Gitee deployments.
