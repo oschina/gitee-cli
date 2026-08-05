@@ -1,62 +1,41 @@
+<div align="center">
+
+<img src="logo.png" alt="Gitee CLI Logo" width="360">
+
 # Gitee CLI
 
-[![Go 版本](https://img.shields.io/badge/go-1.25.12+-00ADD8?logo=go)](https://golang.org)
-[![许可证](https://img.shields.io/badge/license-MIT-blue)]()
+**无需离开终端，即可完成 Gitee 日常工作。**
 
-Gitee CLI 是 [Gitee](https://gitee.com) 的命令行工具，让你无需离开终端即可管理 Pull Request、Issue、仓库、Release 等。
+Pull Request · Issue · 仓库 · Release · AI 工作流 · Gitee API
 
----
+[![Go 版本](https://img.shields.io/badge/Go-1.25.12+-00ADD8?logo=go&logoColor=white)](https://go.dev/dl/)
+[![许可证](https://img.shields.io/badge/License-MIT-2F6FEB)](LICENSE)
+![支持平台](https://img.shields.io/badge/平台-macOS%20%7C%20Linux%20%7C%20Windows-4C566A)
 
-## 功能特性
+[English](README.md) · **简体中文**
 
-- **核心 Gitee 工作流**：PR、Issue、仓库、Release、Gist、SSH Key 以及原始 API 调用
-- **交互式 TUI 模式**：基于 Bubble Tea 的富文本表格，底部帮助栏实时展示快捷键
-- **智能 PR 工作流**：`gitee pr checkout 123` 一步完成拉取并切换分支；仅拉取用 `gitee pr fetch`
-- **多 Host 支持**：同时登录多个 Gitee 实例（gitee.com + 私有部署）
-- **JSON 输出**：所有列表和查看命令均支持 `--json` / `-j`，方便脚本和管道处理
-- **非交互友好**：核心工作流可通过显式 flag 用于 CI/脚本场景
-- **AI 辅助**：`--ai` 自动生成 PR 描述、Issue 报告，或对 PR 进行 AI 代码审查
-- **国际化**：界面语言支持中文（`zh_CN`）和英文（`en`），自动检测系统语言
-- **缓存更新提示**：可选的新版本提醒，缓存 24 小时且在 CI 中自动关闭
-- **Shell 补全**：原生支持 Bash、Zsh、Fish、PowerShell
-- **命令别名**：用 `gitee alias set prs "pr list -s open"` 节省按键次数
+[快速开始](#快速开始) · [命令一览](#命令一览) · [TUI](#tui-模式) · [AI](#ai-功能) · [配置](#配置) · [参与开发](#开发)
+
+</div>
 
 ---
+
+## 为什么选择 Gitee CLI
+
+| 核心能力 |
+|---|
+| **日常工作流** · 管理 PR、Issue、仓库、Release、Gist、SSH Key，并直接调用 API。 |
+| **终端交互** · 在交互式表格中浏览和操作数据，快捷键随场景动态展示。 |
+| **自动化** · 使用 JSON 输出、非交互参数、命令别名与 Shell 补全接入脚本和 CI。 |
+| **AI 辅助** · 起草 PR 和 Issue、审查代码、连续对话，并接入任意 OpenAI 兼容服务。 |
+| **多 Host** · 在同一份配置中使用 `gitee.com` 和私有部署的 Gitee。 |
+| **稳定执行** · 自动重试临时故障、跟踪限额、干净取消，并通过 `--verbose` 排查请求。 |
 
 ## 安装
 
+> **预发布阶段：** Gitee CLI 尚未发布首个正式版本，请从当前 `main` 分支安装。
+
 需要 Go 1.25.12 或更高版本。
-
-```bash
-go install gitee.com/oschina/gitee-cli/cmd/gitee@latest
-```
-
-### 下载二进制
-
-从 [Releases](https://gitee.com/oschina/gitee-cli/releases) 页面下载对应平台的预编译二进制文件。
-
-### npm / npx
-
-```bash
-npx -y @gitee/gitee-cli@latest <command>
-```
-
-或全局安装：
-
-```bash
-npm install -g @gitee/gitee-cli
-gitee <command>
-```
-
-### Homebrew（计划支持）
-
-```bash
-brew install oschina/tap/gitee
-```
-
-### 通过 make 安装
-
-需要 Go 1.25.12 或更高版本以及 `make`。
 
 ```bash
 git clone https://gitee.com/oschina/gitee-cli.git
@@ -64,11 +43,10 @@ cd gitee-cli
 make install
 ```
 
-此命令会编译二进制文件并安装到 `$HOME/bin/gitee`。
+`make install` 会完成构建，并将 CLI 安装到 `$HOME/bin/gitee`。
 
-### 从源码构建
-
-需要 Go 1.25.12 或更高版本。
+<details>
+<summary><strong>不使用 make，直接构建</strong></summary>
 
 ```bash
 git clone https://gitee.com/oschina/gitee-cli.git
@@ -76,26 +54,25 @@ cd gitee-cli
 go build -o gitee ./cmd/gitee
 ```
 
----
+</details>
 
 ## 快速开始
 
-```bash
-# 登录并保存 Personal Access Token
-gitee auth login
-
-# 列出当前仓库的开放 Pull Request
-gitee pr list
-
-# 拉取 PR #123 并直接切换到该分支
-gitee pr checkout 123
-
-# 列出开放的 Issue
-gitee issue list -s open
-
-# 查看当前用户信息
-gitee api /user
+```console
+$ gitee auth login
+$ gitee pr list
+$ gitee pr checkout 123
+$ gitee issue list -s open
+$ gitee api /user
 ```
+
+| 目标 | 命令 |
+|---|---|
+| 登录 Gitee | `gitee auth login` |
+| 在仓库目录之外执行命令 | `gitee pr list -R owner/repo` |
+| 开启交互式表格 | `gitee config set tui true` |
+| 将界面切换为中文 | `gitee config set locale zh_CN` |
+| 查看命令帮助 | `gitee <command> --help` |
 
 ---
 
@@ -181,17 +158,34 @@ gitee auth logout --hostname git.company.com
 |---|---|
 | `-j, --json` | 以 JSON 格式输出结果 |
 
-### 使用示例
+### 常用示例
 
 ```bash
 # 以 JSON 格式列出开放的 PR
 gitee pr list -s open --json
 
-# 按分支、标签、创建者、指派人、测试人和里程碑过滤 PR
-gitee pr list --base main --labels bug,performance --author alice --assignee bob --tester carol --milestone-number 7
-
 # 拉取 PR #42 到本地分支并切换
 gitee pr checkout 42
+
+# 使用 AI 创建和审查 PR
+gitee pr create --ai
+gitee pr review 42 --ai
+
+# 原始 API 调用
+gitee api /user
+
+# 设置别名
+gitee alias set prs "pr list -s open"
+gitee prs
+```
+
+<details>
+<summary><strong>更多命令示例</strong></summary>
+
+```bash
+# 按分支、标签、人员和里程碑过滤 PR
+gitee pr list --base main --labels bug,performance \
+  --author alice --assignee bob --tester carol --milestone-number 7
 
 # 仅拉取，不切换分支
 gitee pr fetch 42 --branch review-42
@@ -199,24 +193,19 @@ gitee pr fetch 42 --branch review-42
 # 创建带审查人员和测试人员的 PR
 gitee pr create --title "Fix login" --assignees alice,bob --testers carol
 
-# 创建 Issue（TUI 模式下会弹出标签多选框）
+# 创建或指派 Issue
 gitee issue create --title "Bug report" --body "Something is wrong."
-
-# 指派 Issue
 gitee issue assign IJEE10 alice
 
-# 通过 Tag 名查看 Release
+# 查看 Release
 gitee release view v1.2.0
 
-# 原始 API 调用
-gitee api /user
+# 调用 API 修改数据，或指定其他 Host
 gitee api -X PATCH /repos/owner/repo/issues/1 -f title="Updated"
 gitee api /repos/owner/repo/pulls --hostname git.company.com
-
-# 设置别名
-gitee alias set prs "pr list -s open"
-gitee prs
 ```
+
+</details>
 
 ---
 

@@ -1,64 +1,41 @@
+<div align="center">
+
+<img src="logo.png" alt="Gitee CLI logo" width="360">
+
 # Gitee CLI
 
-[![Go Version](https://img.shields.io/badge/go-1.25.12+-00ADD8?logo=go)](https://golang.org)
-[![License](https://img.shields.io/badge/license-MIT-blue)]()
+**Work with Gitee without leaving your terminal.**
 
-Gitee CLI is a command-line tool for [Gitee](https://gitee.com).
+Pull requests · Issues · Repositories · Releases · AI workflows · Gitee API
 
-Manage pull requests, issues, repositories, releases, and more without leaving your terminal.
+[![Go Version](https://img.shields.io/badge/Go-1.25.12+-00ADD8?logo=go&logoColor=white)](https://go.dev/dl/)
+[![License](https://img.shields.io/badge/License-MIT-2F6FEB)](LICENSE)
+![Platforms](https://img.shields.io/badge/Platforms-macOS%20%7C%20Linux%20%7C%20Windows-4C566A)
 
----
+**English** · [简体中文](README_zh.md)
 
-## Features
+[Quick start](#quick-start) · [Commands](#commands) · [TUI](#tui-mode) · [AI](#ai-features) · [Configuration](#configuration) · [Development](#development)
 
-- **Core Gitee workflows**: PRs, issues, repos, releases, gists, SSH keys, and raw API calls
-- **Interactive TUI mode**: Browse lists with rich tables powered by Bubble Tea; per-table key bindings shown in the help bar
-- **Smart PR workflow**: `gitee pr checkout 123` fetches and switches branch in one step; `gitee pr fetch` for fetch-only
-- **Multi-host support**: Log in to multiple Gitee instances (gitee.com + private deployments) simultaneously
-- **JSON output**: Every list and view command supports `--json` / `-j` for scripting and piping
-- **Non-interactive friendly**: Core workflows accept explicit flags for CI/script usage
-- **AI assistance**: Generate PR descriptions and issue reports, or get AI code review with `--ai`
-- **Reliable by default**: Auto-retry transient errors, cancel long operations with Ctrl+C, debug with `--verbose`
-- **Cached update check**: Optional release notifications, cached for 24 hours and disabled in CI
-- **Shell completion**: Native completions for Bash, Zsh, Fish, and PowerShell
-- **Command aliases**: Save keystrokes with `gitee alias set prs "pr list -s open"`
+</div>
 
 ---
+
+## Why Gitee CLI
+
+| Core capability |
+|---|
+| **Daily workflows** · Manage PRs, issues, repositories, releases, gists, SSH keys, and raw API calls. |
+| **Terminal UI** · Browse and act on results in interactive tables with contextual key bindings. |
+| **Automation** · Use JSON output, explicit non-interactive flags, aliases, and shell completion. |
+| **AI assistance** · Draft PRs and issues, review code, chat, and connect any OpenAI-compatible provider. |
+| **Multiple hosts** · Work with `gitee.com` and private Gitee deployments from the same configuration. |
+| **Resilient operations** · Retry transient failures, track rate limits, cancel cleanly, and inspect requests with `--verbose`. |
 
 ## Installation
 
-Requires Go 1.25.12 or later.
+> **Pre-release:** Gitee CLI has not published its first release yet. Install the current `main` branch from source.
 
-```bash
-go install gitee.com/oschina/gitee-cli/cmd/gitee@latest
-```
-
-### Binary
-
-Download prebuilt binaries from the [Releases](https://gitee.com/oschina/gitee-cli/releases) page.
-
-### npm / npx
-
-```bash
-npx -y @gitee/gitee-cli@latest <command>
-```
-
-Or install globally:
-
-```bash
-npm install -g @gitee/gitee-cli
-gitee <command>
-```
-
-### Homebrew (planned)
-
-```bash
-brew install oschina/tap/gitee
-```
-
-### Via make
-
-Requires Go 1.25.12 or later and `make`.
+Go 1.25.12 or later is required.
 
 ```bash
 git clone https://gitee.com/oschina/gitee-cli.git
@@ -66,11 +43,10 @@ cd gitee-cli
 make install
 ```
 
-This builds the binary and installs it to `$HOME/bin/gitee`.
+`make install` builds the CLI and installs it to `$HOME/bin/gitee`.
 
-### Build from source
-
-Requires Go 1.25.12 or later.
+<details>
+<summary><strong>Build without make</strong></summary>
 
 ```bash
 git clone https://gitee.com/oschina/gitee-cli.git
@@ -78,26 +54,25 @@ cd gitee-cli
 go build -o gitee ./cmd/gitee
 ```
 
----
+</details>
 
 ## Quick Start
 
-```bash
-# Log in and save your Personal Access Token
-gitee auth login
-
-# List open pull requests in the current repo
-gitee pr list
-
-# Fetch PR #123 and switch to its branch
-gitee pr checkout 123
-
-# List open issues
-gitee issue list -s open
-
-# Call the API directly
-gitee api /user
+```console
+$ gitee auth login
+$ gitee pr list
+$ gitee pr checkout 123
+$ gitee issue list -s open
+$ gitee api /user
 ```
+
+| Goal | Command |
+|---|---|
+| Authenticate | `gitee auth login` |
+| Work outside a repository | `gitee pr list -R owner/repo` |
+| Enable interactive tables | `gitee config set tui true` |
+| Switch the interface to Chinese | `gitee config set locale zh_CN` |
+| Inspect a command | `gitee <command> --help` |
 
 ---
 
@@ -177,53 +152,55 @@ Most list and view commands also accept:
 |---|---|
 | `-j, --json` | Output results as JSON |
 
-### Examples
+### Common Examples
 
 ```bash
 # List open PRs as JSON
 gitee pr list -s open --json
 
-# Filter PRs by branch, labels, author, assignee, tester, and milestone
-gitee pr list --base main --labels bug,performance --author alice --assignee bob --tester carol --milestone-number 7
-
 # Fetch PR #42 to a local branch and switch to it
 gitee pr checkout 42
-
-# Fetch only (no branch switch)
-gitee pr fetch 42 --branch review-42
 
 # Create a PR with AI-generated description
 gitee pr create --ai
 
-# Create a PR with reviewers and testers
-gitee pr create --title "Fix login" --assignees alice,bob --testers carol
-
 # AI code review of a PR
 gitee pr review 42 --ai
 
-# Create an issue with AI (type one sentence, get a structured report)
-gitee issue create --ai
-
-# Assign an issue
-gitee issue assign IJEE10 alice
-
-# View a release by tag name
-gitee release view v1.2.0
-
-# Add SSH key from file
-gitee ssh-key add --title "My laptop" --file ~/.ssh/id_rsa.pub
-
-# Add SSH key from stdin (useful for CI or piped input)
-cat ~/.ssh/id_rsa.pub | gitee ssh-key add --title "CI server" --file -
-
 # Raw API call
 gitee api /user
-gitee api -X PATCH /repos/owner/repo/issues/1 -f title="Updated"
-gitee api /repos/owner/repo/pulls --hostname git.company.com
 
 # Set a handy alias
 gitee alias set prs "pr list -s open"
 gitee prs
+```
+
+<details>
+<summary><strong>More command examples</strong></summary>
+
+```bash
+# Filter PRs by branch, labels, people, and milestone
+gitee pr list --base main --labels bug,performance \
+  --author alice --assignee bob --tester carol --milestone-number 7
+
+# Fetch without switching branches
+gitee pr fetch 42 --branch review-42
+
+# Create a PR with reviewers and testers
+gitee pr create --title "Fix login" --assignees alice,bob --testers carol
+
+# Create or assign an issue
+gitee issue create --ai
+gitee issue assign IJEE10 alice
+
+# Work with releases and SSH keys
+gitee release view v1.2.0
+gitee ssh-key add --title "My laptop" --file ~/.ssh/id_rsa.pub
+cat ~/.ssh/id_rsa.pub | gitee ssh-key add --title "CI server" --file -
+
+# Send an API mutation or target another host
+gitee api -X PATCH /repos/owner/repo/issues/1 -f title="Updated"
+gitee api /repos/owner/repo/pulls --hostname git.company.com
 
 # Suppress output (useful in scripts)
 gitee issue close ICX4FO --quiet
@@ -234,6 +211,8 @@ gitee pr list --verbose
 # [DEBUG] Rate limit: 4998/5000
 # [DEBUG] Response 200 OK (0.234s)
 ```
+
+</details>
 
 ---
 
