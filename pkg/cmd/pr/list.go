@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"text/tabwriter"
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
@@ -99,13 +98,19 @@ func newPRListCmd(f *cmdutil.Factory) *cobra.Command {
 				return prListTUI(f.Context, prs, owner, repo, f.Hostname, client)
 			}
 
-			w := tabwriter.NewWriter(f.IOStreams.Out, 0, 0, 2, ' ', 0)
-			fmt.Fprintf(w, "#\tTITLE\tAUTHOR\tSTATE\tHEAD\tBASE\n")
+			rows := [][]string{{"#", "TITLE", "AUTHOR", "STATE", "HEAD", "BASE"}}
 			for _, pr := range prs {
 				title := tui.Truncate(pr.Title, 50)
-				fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\n", pr.Number, title, pr.User.Login, pr.State, pr.Head.Ref, pr.Base.Ref)
+				rows = append(rows, []string{
+					strconv.Itoa(pr.Number),
+					title,
+					pr.User.Login,
+					pr.State,
+					pr.Head.Ref,
+					pr.Base.Ref,
+				})
 			}
-			return w.Flush()
+			return cmdutil.WriteTable(f.IOStreams.Out, rows)
 		},
 	}
 

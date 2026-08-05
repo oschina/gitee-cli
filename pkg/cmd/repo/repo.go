@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"text/tabwriter"
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
@@ -97,8 +96,7 @@ func newRepoListCmd(f *cmdutil.Factory) *cobra.Command {
 				return repoListTUI(f.Context, repos, f.Hostname, client)
 			}
 
-			w := tabwriter.NewWriter(f.IOStreams.Out, 0, 0, 2, ' ', 0)
-			fmt.Fprintf(w, "NAME\tDESCRIPTION\tSTARS\tLANG\tVISIBILITY\n")
+			rows := [][]string{{"NAME", "DESCRIPTION", "STARS", "LANG", "VISIBILITY"}}
 			for _, r := range repos {
 				vis := "public"
 				if r.Private {
@@ -111,9 +109,15 @@ func newRepoListCmd(f *cmdutil.Factory) *cobra.Command {
 				if lang == "" {
 					lang = "-"
 				}
-				fmt.Fprintf(w, "%s\t%s\t%d\t%s\t%s\n", r.FullName, desc, r.StargazersCount, lang, vis)
+				rows = append(rows, []string{
+					r.FullName,
+					desc,
+					strconv.Itoa(r.StargazersCount),
+					lang,
+					vis,
+				})
 			}
-			return w.Flush()
+			return cmdutil.WriteTable(f.IOStreams.Out, rows)
 		},
 	}
 

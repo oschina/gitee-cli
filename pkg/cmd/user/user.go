@@ -3,7 +3,6 @@ package user
 import (
 	"context"
 	"fmt"
-	"text/tabwriter"
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
@@ -67,12 +66,11 @@ func newUserSearchCmd(f *cmdutil.Factory) *cobra.Command {
 				return userSearchTUI(f.Context, users, client)
 			}
 
-			w := tabwriter.NewWriter(f.IOStreams.Out, 0, 0, 2, ' ', 0)
-			fmt.Fprintf(w, "LOGIN\tNAME\tURL\n")
+			rows := [][]string{{"LOGIN", "NAME", "URL"}}
 			for _, u := range users {
-				fmt.Fprintf(w, "%s\t%s\t%s\n", u.Login, u.Name, u.HTMLURL)
+				rows = append(rows, []string{u.Login, u.Name, u.HTMLURL})
 			}
-			return w.Flush()
+			return cmdutil.WriteTable(f.IOStreams.Out, rows)
 		},
 	}
 

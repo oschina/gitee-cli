@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"text/tabwriter"
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
@@ -88,19 +87,18 @@ func newIssueListCmd(f *cmdutil.Factory) *cobra.Command {
 				return issueListTUI(f.Context, issues, owner, repo, f.Hostname, client)
 			}
 
-			w := tabwriter.NewWriter(f.IOStreams.Out, 0, 0, 2, ' ', 0)
-			fmt.Fprintf(w, "#\tTITLE\tSTATE\tASSIGNEE\tLABELS\tCREATOR\n")
+			rows := [][]string{{"#", "TITLE", "STATE", "ASSIGNEE", "LABELS", "CREATOR"}}
 			for _, iss := range issues {
-				fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s\n",
+				rows = append(rows, []string{
 					iss.Number,
 					tui.Truncate(iss.Title, 40),
 					iss.State,
 					assigneeLogin(iss),
 					labelNames(iss),
 					iss.User.Login,
-				)
+				})
 			}
-			return w.Flush()
+			return cmdutil.WriteTable(f.IOStreams.Out, rows)
 		},
 	}
 

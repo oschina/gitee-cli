@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"text/tabwriter"
 	"time"
 
 	"github.com/charmbracelet/bubbles/table"
@@ -80,17 +79,21 @@ func newReleaseListCmd(f *cmdutil.Factory) *cobra.Command {
 			if f.IsTUI() {
 				return releaseListTUI(f.Context, releases, owner, repo, f.Hostname, client)
 			}
-			w := tabwriter.NewWriter(f.IOStreams.Out, 0, 0, 2, ' ', 0)
-			fmt.Fprintf(w, "ID\tTAG\tNAME\tPRE\tCREATED\n")
+			rows := [][]string{{"ID", "TAG", "NAME", "PRE", "CREATED"}}
 			for _, r := range releases {
 				pre := ""
 				if r.Prerelease {
 					pre = "pre"
 				}
-				fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\n",
-					r.ID, r.TagName, tui.Truncate(r.Name, 30), pre, r.CreatedAt.Format(time.DateOnly))
+				rows = append(rows, []string{
+					strconv.Itoa(r.ID),
+					r.TagName,
+					tui.Truncate(r.Name, 30),
+					pre,
+					r.CreatedAt.Format(time.DateOnly),
+				})
 			}
-			return w.Flush()
+			return cmdutil.WriteTable(f.IOStreams.Out, rows)
 		},
 	}
 	cmd.Flags().IntVarP(&limit, "limit", "l", 20, "Number of releases per page")

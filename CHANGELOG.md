@@ -22,6 +22,7 @@ format follows Keep a Changelog, and releases use Semantic Versioning.
 
 ### Fixed
 
+- Align plain-text list columns by Unicode terminal display width.
 - Handle Chinese and other wide Unicode characters correctly when editing
   input in `gitee ai --chat`, and keep submitted user messages visible.
 

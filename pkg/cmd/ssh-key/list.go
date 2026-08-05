@@ -2,8 +2,8 @@ package sshkey
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
-	"text/tabwriter"
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
@@ -81,12 +81,15 @@ func newSSHKeyListCmd(f *cmdutil.Factory) *cobra.Command {
 				return sshKeyListTUI(keys, f.Hostname)
 			}
 
-			w := tabwriter.NewWriter(f.IOStreams.Out, 0, 0, 2, ' ', 0)
-			fmt.Fprintf(w, "ID\tCOMMENT\tKEY\n")
+			rows := [][]string{{"ID", "COMMENT", "KEY"}}
 			for _, k := range keys {
-				fmt.Fprintf(w, "%d\t%s\t%s\n", k.ID, keyComment(k.Key), keyPreview(k.Key))
+				rows = append(rows, []string{
+					strconv.Itoa(k.ID),
+					keyComment(k.Key),
+					keyPreview(k.Key),
+				})
 			}
-			return w.Flush()
+			return cmdutil.WriteTable(f.IOStreams.Out, rows)
 		},
 	}
 

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
-	"text/tabwriter"
 	"time"
 
 	"github.com/charmbracelet/bubbles/table"
@@ -76,8 +76,7 @@ func newGistListCmd(f *cmdutil.Factory) *cobra.Command {
 			if f.IsTUI() {
 				return gistListTUI(f.Context, gists, f.Hostname, client)
 			}
-			w := tabwriter.NewWriter(f.IOStreams.Out, 0, 0, 2, ' ', 0)
-			fmt.Fprintf(w, "ID\tDESCRIPTION\tFILES\tVIS\tUPDATED\n")
+			rows := [][]string{{"ID", "DESCRIPTION", "FILES", "VIS", "UPDATED"}}
 			for _, g := range gists {
 				vis := "secret"
 				if g.Public {
@@ -88,10 +87,15 @@ func newGistListCmd(f *cmdutil.Factory) *cobra.Command {
 				if len(id) > 8 {
 					id = id[:8]
 				}
-				fmt.Fprintf(w, "%s\t%s\t%d\t%s\t%s\n",
-					id, desc, len(g.Files), vis, g.UpdatedAt.Format(time.DateOnly))
+				rows = append(rows, []string{
+					id,
+					desc,
+					strconv.Itoa(len(g.Files)),
+					vis,
+					g.UpdatedAt.Format(time.DateOnly),
+				})
 			}
-			return w.Flush()
+			return cmdutil.WriteTable(f.IOStreams.Out, rows)
 		},
 	}
 	cmd.Flags().IntVarP(&limit, "limit", "l", 20, "Number of gists per page")

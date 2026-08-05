@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/mattn/go-runewidth"
+
 	"gitee.com/oschina/gitee-cli/pkg/cmdtest"
 	"gitee.com/oschina/gitee-cli/pkg/gitee"
 )
@@ -33,6 +35,42 @@ func TestIssueListCmd_plainText(t *testing.T) {
 	}
 	if !strings.Contains(out, "Cannot login") {
 		t.Errorf("expected issue title, got: %s", out)
+	}
+}
+
+func TestIssueListCmd_plainTextAlignsWideTitles(t *testing.T) {
+	issues := []gitee.Issue{
+		{Number: "I1", Title: "中文标题", State: "open", User: gitee.User{Login: "alice"}},
+		{Number: "I22", Title: "ASCII title", State: "open", User: gitee.User{Login: "bob"}},
+	}
+	out, err := runIssueCmd([]string{"list", "-R", "owner/repo"}, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		json.NewEncoder(w).Encode(issues)
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	lines := strings.Split(strings.TrimSpace(out), "\n")
+	if len(lines) != 3 {
+		t.Fatalf("expected header and two rows, got:\n%s", out)
+	}
+	var stateColumn int
+	for i, line := range lines {
+		stateIndex := strings.Index(line, "open")
+		if i == 0 {
+			stateIndex = strings.Index(line, "STATE")
+		}
+		if stateIndex < 0 {
+			t.Fatalf("state column not found in line %q", line)
+		}
+		column := runewidth.StringWidth(line[:stateIndex])
+		if i == 0 {
+			stateColumn = column
+			continue
+		}
+		if column != stateColumn {
+			t.Errorf("state column width = %d, want %d in line %q", column, stateColumn, line)
+		}
 	}
 }
 

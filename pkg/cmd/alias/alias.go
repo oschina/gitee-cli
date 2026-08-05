@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-	"text/tabwriter"
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
@@ -80,11 +79,11 @@ func newAliasListCmd(f *cmdutil.Factory) *cobra.Command {
 				return runAliasTUI(names, aliases)
 			}
 
-			w := tabwriter.NewWriter(f.IOStreams.Out, 0, 0, 2, ' ', 0)
+			rows := make([][]string, 0, len(names))
 			for _, name := range names {
-				fmt.Fprintf(w, "%s\t%s\n", name, aliases[name])
+				rows = append(rows, []string{name, aliases[name]})
 			}
-			return w.Flush()
+			return cmdutil.WriteTable(f.IOStreams.Out, rows)
 		},
 	}
 	cmd.Flags().BoolVarP(&jsonOut, "json", "j", false, "Output as JSON")
