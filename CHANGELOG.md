@@ -5,29 +5,32 @@ format follows Keep a Changelog, and releases use Semantic Versioning.
 
 ## [Unreleased]
 
-## [0.1.0-rc.1] - 2026-08-05
-
 ### Added
 
+- Core Gitee workflows for pull requests, issues, repositories, releases,
+  gists, SSH keys, users, and raw API requests.
+- Interactive terminal tables, pagers, themes, and optional image rendering.
+- JSON output and non-interactive flags for scripting and CI environments.
+- Multi-host authentication for gitee.com and private Gitee deployments.
+- AI-assisted pull request descriptions, issue drafts, code reviews, and chat.
+- Shell completion and persistent command aliases.
+- English and Simplified Chinese interface support.
 - Cross-platform binary and npm packaging for Linux, macOS, and Windows.
-- Non-interactive JSON output and destructive-operation safeguards.
-- Cached, configurable update checks that are disabled in CI.
-- Open-source governance, security, and release documentation.
-- Editable release-note generation based on changes since the previous version.
+- Release checksums, release-note generation, and resumable publishing tools.
+- Contribution, security, conduct, and release documentation.
 
-### Changed
+### Fixed
 
-- TUI mode is opt-in and defaults to disabled.
-- Pull request creation uses the API-aligned `--assignees` flag.
-- Authentication accepts tokens through hidden input, stdin, or environment
-  variables instead of command-line arguments.
-- HTTP requests identify the running build as `gitee-cli@version` for
-  service-side usage statistics.
-- Release publishing uses reviewed release notes and synchronizes them when
-  reusing an existing Gitee Release.
+- Handle Chinese and other wide Unicode characters correctly when editing
+  input in `gitee ai --chat`, and keep submitted user messages visible.
 
 ### Security
 
-- Prevented credentials from appearing in clone URLs and process arguments.
-- Prevented raw API credentials from being forwarded across origins.
-- Hardened remote image loading and terminal rendering.
+- Store credentials in files restricted to the current user and redact them
+  from configuration output.
+- Keep generated HTTPS clone credentials out of clone URLs and command-line
+  arguments.
+- Do not forward authentication headers across origins or redirects.
+- Require confirmation or an explicit `--yes` flag for destructive commands.
+- Restrict remote image downloads by protocol, address range, content type,
+  response size, redirect count, and timeout.

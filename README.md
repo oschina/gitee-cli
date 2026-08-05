@@ -559,8 +559,6 @@ Aliases are stored in `~/.config/gitee/config.yml` and persist across sessions.
 
 ## Development
 
-Planned command and automation coverage is tracked in [ROADMAP.md](ROADMAP.md).
-
 ### Prerequisites
 
 - Go 1.25.12 or later

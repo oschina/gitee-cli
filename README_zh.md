@@ -516,8 +516,6 @@ gitee alias delete prs
 
 ## 开发
 
-后续命令与自动化能力规划见 [ROADMAP.md](ROADMAP.md)。
-
 ### 环境要求
 
 - Go 1.25.12 或更高版本
