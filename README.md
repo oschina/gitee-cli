@@ -34,7 +34,20 @@ Pull requests · Issues · Repositories · Releases · AI workflows · Gitee API
 
 ## Installation
 
-> **Pre-release:** Gitee CLI has not published its first release yet. Install the current `main` branch from source.
+Install the latest release globally with npm:
+
+```bash
+npm install -g @gitee/gitee-cli
+```
+
+The package installs the matching platform binary (macOS, Linux, or Windows)
+automatically via npm optional dependencies. Verify it works:
+
+```bash
+gitee --version
+```
+
+### Build from source
 
 Go 1.25.12 or later is required.
 

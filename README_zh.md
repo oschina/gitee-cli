@@ -34,7 +34,19 @@ Pull Request · Issue · 仓库 · Release · AI 工作流 · Gitee API
 
 ## 安装
 
-> **预发布阶段：** Gitee CLI 尚未发布首个正式版本，请从当前 `main` 分支安装。
+通过 npm 全局安装最新版本：
+
+```bash
+npm install -g @gitee/gitee-cli
+```
+
+包会通过 npm 的可选依赖（optional dependencies）自动安装与你平台（macOS、Linux 或 Windows）匹配的二进制。验证是否可用：
+
+```bash
+gitee --version
+```
+
+### 从源码构建
 
 需要 Go 1.25.12 或更高版本。
 
