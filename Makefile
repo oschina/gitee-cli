@@ -4,6 +4,7 @@ GO            = go
 OSES          = darwin linux windows
 ARCHS         = amd64 arm64
 BUILD_OUTPUT_DIR = .
+BUILD_DISTRIBUTION ?= source
 RELEASE_DIR   = dist
 VERSION       =
 GITEE         = gitee
@@ -35,7 +36,8 @@ BUILD_DATE  := $(shell date -u +%Y-%m-%d)
 BUILD_FLAGS := -ldflags "-s -w \
   -X gitee.com/oschina/gitee-cli/internal/build.Version=$(GIT_VERSION) \
   -X gitee.com/oschina/gitee-cli/internal/build.CommitSHA=$(GIT_COMMIT) \
-  -X gitee.com/oschina/gitee-cli/internal/build.Date=$(BUILD_DATE)"
+  -X gitee.com/oschina/gitee-cli/internal/build.Date=$(BUILD_DATE) \
+  -X gitee.com/oschina/gitee-cli/internal/build.Distribution=$(BUILD_DISTRIBUTION)"
 
 build:
 	@mkdir -p ./bin
@@ -81,7 +83,7 @@ release: release-check
 	@command -v zip >/dev/null 2>&1 || { echo "zip is required to package Windows releases" >&2; exit 2; }
 	@rm -rf "$(RELEASE_DIR)"
 	@mkdir -p "$(RELEASE_DIR)"
-	@$(MAKE) build-all-platforms BUILD_OUTPUT_DIR="$(RELEASE_DIR_ABS)/binaries" GIT_VERSION="$(RELEASE_TAG)"
+	@$(MAKE) build-all-platforms BUILD_OUTPUT_DIR="$(RELEASE_DIR_ABS)/binaries" GIT_VERSION="$(RELEASE_TAG)" BUILD_DISTRIBUTION=release
 	@set -eu; \
 		stage_root="$(RELEASE_DIR_ABS)/stage"; \
 		mkdir -p "$$stage_root"; \
@@ -157,7 +159,8 @@ build-all-platforms:
 	done
 
 # Build platform binaries and copy them into npm/ directories
-npm-copy-binaries: build-all-platforms
+npm-copy-binaries:
+	@$(MAKE) build-all-platforms BUILD_DISTRIBUTION=npm
 	@set -e; \
 	for os in $(OSES); do \
 		for arch in $(ARCHS); do \

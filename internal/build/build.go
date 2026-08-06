@@ -3,9 +3,10 @@ package build
 import "strings"
 
 var (
-	Version   = "dev"
-	CommitSHA = "unknown"
-	Date      = "unknown"
+	Version      = "dev"
+	CommitSHA    = "unknown"
+	Date         = "unknown"
+	Distribution = "unknown"
 )
 
 // UserAgent identifies network requests made by this Gitee CLI build.

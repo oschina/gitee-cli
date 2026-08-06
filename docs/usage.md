@@ -307,6 +307,28 @@ gitee config list
 Set `GITEE_NO_UPDATE_NOTIFIER=1` to disable update checks without changing the
 configuration.
 
+### CLI Updates
+
+Background update checks only print a notification. They never install a
+release or show an interactive prompt. Disable them permanently with:
+
+```bash
+gitee config set update_check false
+```
+
+An explicit update remains available even when background checks are disabled:
+
+```bash
+gitee update --check       # check without installing
+gitee update               # show the detected installation method and confirm
+gitee update --yes         # non-interactive update
+```
+
+Global npm installations are updated through npm. Release, tagged-source, and
+standalone binaries are downloaded from the Gitee Release, verified with
+`checksums.txt`, and atomically replaced. Local npm dependencies must be
+updated by the project that owns them. The updater never invokes `sudo`.
+
 ## Reliability and Debugging
 
 Transient HTTP 429, 5xx, timeout, and network failures are retried with

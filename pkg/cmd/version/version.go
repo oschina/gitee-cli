@@ -38,6 +38,7 @@ func printPlain(f *cmdutil.Factory) error {
 	fmt.Fprintf(w, "  %-10s %s\n", "Version", build.Version)
 	fmt.Fprintf(w, "  %-10s %s\n", "Commit", build.CommitSHA)
 	fmt.Fprintf(w, "  %-10s %s\n", "Built", build.Date)
+	fmt.Fprintf(w, "  %-10s %s\n", "Install", build.Distribution)
 	fmt.Fprintf(w, "  %-10s %s\n", "Go", runtime.Version())
 	fmt.Fprintf(w, "  %-10s %s/%s\n", "Platform", runtime.GOOS, runtime.GOARCH)
 	fmt.Fprintln(w)
@@ -78,6 +79,7 @@ func printFancy(f *cmdutil.Factory) error {
 	versionRow := row("Version", lipgloss.NewStyle().Bold(true).Foreground(theme.Success), build.Version)
 	commitRow := row("Commit", lipgloss.NewStyle().Foreground(theme.Warning), build.CommitSHA)
 	builtRow := row("Built", plainValue, build.Date)
+	installRow := row("Install", plainValue, build.Distribution)
 	goRow := row("Go", plainValue, runtime.Version())
 	platformRow := row("Platform", plainValue, fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH))
 
@@ -92,6 +94,7 @@ func printFancy(f *cmdutil.Factory) error {
 		versionRow,
 		commitRow,
 		builtRow,
+		installRow,
 		goRow,
 		platformRow,
 		"",

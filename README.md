@@ -126,7 +126,8 @@ Tokens for non-default hosts are stored in `~/.config/gitee/hosts.yml`.
 | `release` | `list`, `view`, `create`, `delete` | Manage releases |
 | `gist` | `list`, `view`, `create`, `delete` | Manage gists |
 | `ssh-key` | `list`, `add`, `delete` | Manage SSH keys (supports stdin input) |
-| `user` | `search` | Search users |
+| `search` | `repos`, `issues`, `users` | Search across Gitee |
+| `update` | `--check`, `--yes` | Check for and install CLI updates |
 | `alias` | `list`, `set`, `delete` | Manage command aliases |
 | `ai` | `[prompt]`, `--chat` | Chat with an OpenAI-compatible model |
 | `api` | `<endpoint>` | Make raw API requests |

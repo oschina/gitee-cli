@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const childProcess = require('child_process');
+const path = require('path');
 
 const BINARY_MAP = {
   darwin_x64:    { name: 'gitee-cli-darwin-amd64',   suffix: '' },
@@ -31,6 +32,11 @@ const resolveBinaryPath = () => {
 
 const result = childProcess.spawnSync(resolveBinaryPath(), process.argv.slice(2), {
   stdio: 'inherit',
+  env: {
+    ...process.env,
+    GITEE_INSTALL_METHOD: 'npm',
+    GITEE_NPM_PACKAGE_ROOT: path.resolve(__dirname, '..'),
+  },
 });
 
 if (result.error) {

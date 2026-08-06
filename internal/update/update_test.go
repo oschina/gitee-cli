@@ -2,6 +2,7 @@ package update
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
@@ -28,6 +29,15 @@ func TestCheckForUpdate_devVersion(t *testing.T) {
 	}
 	if info != nil {
 		t.Error("expected nil for dev version")
+	}
+}
+
+func TestVersionClassification(t *testing.T) {
+	if !IsReleaseVersion("1.2.3") {
+		t.Fatal("expected valid release versions")
+	}
+	if IsReleaseVersion("dev+abc123") {
+		t.Fatal("unexpected version classification")
 	}
 }
 
@@ -75,6 +85,9 @@ func TestCheckForUpdate_newVersion(t *testing.T) {
 	}
 	if info.Version != "v2.0.0" {
 		t.Errorf("expected version v2.0.0, got %s", info.Version)
+	}
+	if info.URL != "https://gitee.com/oschina/gitee-cli/releases/tag/v2.0.0" {
+		t.Errorf("unexpected release URL: %s", info.URL)
 	}
 }
 
@@ -151,6 +164,33 @@ func TestCheckForUpdate_currentNewer(t *testing.T) {
 	}
 }
 
+func TestCheckForUpdate_returnsLatestRelease(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		json.NewEncoder(w).Encode(releaseResponse{
+			TagName: "v1.10.0",
+			Assets:  []ReleaseAsset{{Name: "checksums.txt", BrowserDownloadURL: "https://example.com/checksums.txt"}},
+		})
+	}))
+	defer srv.Close()
+	origFn := httpGetFn
+	defer func() { httpGetFn = origFn }()
+	httpGetFn = func(url string) (*http.Response, error) { return http.Get(srv.URL) }
+
+	info, err := CheckForUpdate("v0.2.0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if info == nil || info.Version != "v1.10.0" {
+		t.Fatalf("unexpected release: %#v", info)
+	}
+	if info.URL != "https://gitee.com/oschina/gitee-cli/releases/tag/v1.10.0" {
+		t.Fatalf("unexpected release URL: %s", info.URL)
+	}
+	if len(info.Assets) != 1 {
+		t.Fatalf("expected assets to be preserved, got %#v", info.Assets)
+	}
+}
+
 func TestCheckForUpdateCached_reusesFreshResult(t *testing.T) {
 	srv := newReleasesServer(t, "v2.0.0", "https://example.com/v2.0.0")
 	defer srv.Close()
@@ -178,6 +218,53 @@ func TestCheckForUpdateCached_reusesFreshResult(t *testing.T) {
 	}
 }
 
+func TestCheckForUpdateCached_invalidatesAfterCurrentVersionChanges(t *testing.T) {
+	srv := newReleasesServer(t, "v2.0.0", "")
+	defer srv.Close()
+	requests := 0
+	origFn := httpGetFn
+	defer func() { httpGetFn = origFn }()
+	httpGetFn = func(url string) (*http.Response, error) {
+		requests++
+		return http.Get(srv.URL)
+	}
+	cachePath := filepath.Join(t.TempDir(), "update-check.json")
+	if info, err := CheckForUpdateCached("v1.0.0", cachePath, 24*time.Hour); err != nil || info == nil {
+		t.Fatalf("first check = %#v, %v", info, err)
+	}
+	if info, err := CheckForUpdateCached("v2.0.0", cachePath, 24*time.Hour); err != nil || info != nil {
+		t.Fatalf("post-upgrade check = %#v, %v", info, err)
+	}
+	if requests != 2 {
+		t.Fatalf("expected cache invalidation to make two requests, got %d", requests)
+	}
+}
+
+func TestCheckForUpdateCached_doesNotCacheFailure(t *testing.T) {
+	srv := newReleasesServer(t, "v2.0.0", "")
+	defer srv.Close()
+	requests := 0
+	origFn := httpGetFn
+	defer func() { httpGetFn = origFn }()
+	httpGetFn = func(url string) (*http.Response, error) {
+		requests++
+		if requests == 1 {
+			return nil, errors.New("temporary network failure")
+		}
+		return http.Get(srv.URL)
+	}
+	cachePath := filepath.Join(t.TempDir(), "update-check.json")
+	if _, err := CheckForUpdateCached("v1.0.0", cachePath, 24*time.Hour); err == nil {
+		t.Fatal("expected first check to fail")
+	}
+	if info, err := CheckForUpdateCached("v1.0.0", cachePath, 24*time.Hour); err != nil || info == nil {
+		t.Fatalf("retry = %#v, %v", info, err)
+	}
+	if requests != 2 {
+		t.Fatalf("expected a retry after failure, got %d requests", requests)
+	}
+}
+
 func TestShouldCheck(t *testing.T) {
 	for _, name := range []string{"CI", "GITHUB_ACTIONS", "GITLAB_CI", "GITEE_CI", "GITEE_NO_UPDATE_NOTIFIER"} {
 		t.Setenv(name, "")
@@ -199,12 +286,9 @@ func TestShouldCheck(t *testing.T) {
 	}
 }
 
-func newReleasesServer(t *testing.T, tagName, htmlURL string) *httptest.Server {
+func newReleasesServer(t *testing.T, tagName, _ string) *httptest.Server {
 	t.Helper()
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode(map[string]string{
-			"tag_name": tagName,
-			"html_url": htmlURL,
-		})
+		json.NewEncoder(w).Encode(releaseResponse{TagName: tagName})
 	}))
 }

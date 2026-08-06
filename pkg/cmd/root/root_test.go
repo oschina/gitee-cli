@@ -165,6 +165,7 @@ func TestLeafCommandsRejectUnexpectedArguments(t *testing.T) {
 		{"release", "create", "extra"},
 		{"repo", "list", "extra"},
 		{"repo", "create", "extra"},
+		{"update", "extra"},
 		{"ssh-key", "list", "extra"},
 		{"ssh-key", "add", "extra"},
 		{"version", "extra"},
@@ -223,7 +224,7 @@ func TestHasQuietFlag(t *testing.T) {
 }
 
 func TestSkipUpdateForArgs(t *testing.T) {
-	for _, args := range [][]string{nil, {"--help"}, {"version"}, {"completion", "zsh"}, {"pr", "list", "-h"}} {
+	for _, args := range [][]string{nil, {"--help"}, {"version"}, {"update"}, {"completion", "zsh"}, {"pr", "list", "-h"}} {
 		if !skipUpdateForArgs(args) {
 			t.Errorf("expected update check to be skipped for %v", args)
 		}

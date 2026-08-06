@@ -299,6 +299,26 @@ gitee config list
 
 设置 `GITEE_NO_UPDATE_NOTIFIER=1` 可在不修改配置的情况下关闭版本检查。
 
+### CLI 更新
+
+后台更新检查只输出通知，不会自动安装，也不会弹出交互确认。可永久关闭：
+
+```bash
+gitee config set update_check false
+```
+
+关闭后台检查后，仍可主动执行更新：
+
+```bash
+gitee update --check       # 只检查，不安装
+gitee update               # 显示识别到的安装方式并确认
+gitee update --yes         # 非交互更新
+```
+
+全局 npm 安装会通过 npm 更新；Release、带版本标签的源码安装和独立二进制会从
+Gitee Release 下载对应平台的附件，校验 `checksums.txt` 后原子替换。本地 npm
+依赖必须由所属项目更新，更新器不会调用 `sudo`。
+
 ## 稳定性与调试
 
 HTTP 429、5xx、超时和临时网络错误会通过指数退避自动重试。长时间运行的操作可

@@ -126,7 +126,8 @@ gitee auth logout --hostname git.company.com
 | `release` | `list`, `view`, `create`, `delete` | 管理 Release |
 | `gist` | `list`, `view`, `create`, `delete` | 管理 Gist |
 | `ssh-key` | `list`, `add`, `delete` | 管理 SSH Key |
-| `user` | `search` | 搜索用户 |
+| `search` | `repos`, `issues`, `users` | 在 Gitee 全站搜索 |
+| `update` | `--check`, `--yes` | 检查并安装 CLI 更新 |
 | `alias` | `list`, `set`, `delete` | 管理命令别名 |
 | `ai` | `[prompt]`, `--chat` | 与 OpenAI 兼容模型对话 |
 | `api` | `<endpoint>` | 发起原始 API 请求 |

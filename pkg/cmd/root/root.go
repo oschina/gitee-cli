@@ -30,6 +30,7 @@ import (
 	"gitee.com/oschina/gitee-cli/pkg/cmd/repo"
 	"gitee.com/oschina/gitee-cli/pkg/cmd/search"
 	sshkey "gitee.com/oschina/gitee-cli/pkg/cmd/ssh-key"
+	updatecmd "gitee.com/oschina/gitee-cli/pkg/cmd/update"
 	"gitee.com/oschina/gitee-cli/pkg/cmd/version"
 	"gitee.com/oschina/gitee-cli/pkg/cmdutil"
 	"gitee.com/oschina/gitee-cli/pkg/iostreams"
@@ -86,6 +87,7 @@ func NewRootCmd(ctx context.Context, f *cmdutil.Factory) *cobra.Command {
 	cmd.AddCommand(gist.NewGistCmd(f))
 	cmd.AddCommand(sshkey.NewSSHKeyCmd(f))
 	cmd.AddCommand(search.NewSearchCmd(f))
+	cmd.AddCommand(updatecmd.NewUpdateCmd(f))
 	cmd.AddCommand(version.NewVersionCmd(f))
 	cmd.AddCommand(alias.NewAliasCmd(f))
 	cmd.AddCommand(api.NewAPICmd(f))
@@ -127,6 +129,7 @@ func Execute(ctx context.Context, f *cmdutil.Factory) {
 			if info != nil {
 				fmt.Fprintf(f.IOStreams.ErrOut, "\nA new release of gitee-cli is available: %s → %s\n%s\n",
 					build.Version, info.Version, info.URL)
+				fmt.Fprintln(f.IOStreams.ErrOut, "Run `gitee update` to install it.")
 			}
 		case <-time.After(250 * time.Millisecond):
 		}
@@ -154,7 +157,7 @@ func skipUpdateForArgs(args []string) bool {
 			return true
 		}
 	}
-	return args[0] == "help" || args[0] == "version" || args[0] == "completion"
+	return args[0] == "help" || args[0] == "version" || args[0] == "completion" || args[0] == "update"
 }
 
 func expandAlias(rootCmd *cobra.Command, args []string) ([]string, bool) {

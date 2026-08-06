@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -14,14 +15,27 @@ import (
 )
 
 type ReleaseInfo struct {
-	Version string `json:"version"`
-	URL     string `json:"url"`
+	Version string         `json:"version"`
+	URL     string         `json:"url"`
+	Assets  []ReleaseAsset `json:"assets,omitempty"`
+}
+
+type ReleaseAsset struct {
+	Name               string `json:"name"`
+	BrowserDownloadURL string `json:"browser_download_url"`
 }
 
 type cacheEntry struct {
-	CheckedAt time.Time    `json:"checked_at"`
-	Latest    *ReleaseInfo `json:"latest,omitempty"`
+	CheckedAt      time.Time    `json:"checked_at"`
+	CurrentVersion string       `json:"current_version"`
+	Latest         *ReleaseInfo `json:"latest,omitempty"`
 }
+
+const (
+	releasesURL      = "https://gitee.com/api/v5/repos/oschina/gitee-cli/releases"
+	latestReleaseURL = releasesURL + "/latest"
+	releasePageURL   = "https://gitee.com/oschina/gitee-cli/releases/tag/"
+)
 
 var httpGetFn = func(url string) (*http.Response, error) {
 	client := &http.Client{Timeout: 5 * time.Second}
@@ -54,67 +68,89 @@ func ensureVPrefix(v string) string {
 }
 
 func CheckForUpdate(currentVersion string) (*ReleaseInfo, error) {
-	if currentVersion == "" || strings.HasSuffix(currentVersion, "-dev") {
+	if _, ok := normalizeVersion(currentVersion); !ok {
 		return nil, nil
 	}
+	return checkForUpdate(currentVersion)
+}
 
-	normalized := ensureVPrefix(currentVersion)
-	if !semver.IsValid(normalized) {
-		return nil, nil
+func checkForUpdate(currentVersion string) (*ReleaseInfo, error) {
+	normalized, _ := normalizeVersion(currentVersion)
+	release, err := fetchLatestRelease()
+	if err != nil {
+		return nil, err
 	}
 
-	resp, err := httpGetFn("https://gitee.com/api/v5/repos/oschina/gitee-cli/releases/latest")
+	latestVersion := ensureVPrefix(strings.TrimSpace(release.TagName))
+	if !semver.IsValid(latestVersion) {
+		return nil, nil
+	}
+	if semver.Compare(latestVersion, normalized) <= 0 {
+		return nil, nil
+	}
+	return &ReleaseInfo{
+		Version: release.TagName,
+		URL:     releasePageURL + url.PathEscape(release.TagName),
+		Assets:  release.Assets,
+	}, nil
+}
+
+type releaseResponse struct {
+	TagName string         `json:"tag_name"`
+	Assets  []ReleaseAsset `json:"assets"`
+}
+
+func fetchLatestRelease() (*releaseResponse, error) {
+	resp, err := httpGetFn(latestReleaseURL)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
-
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("unexpected status: %d", resp.StatusCode)
 	}
-
-	var release struct {
-		TagName string `json:"tag_name"`
-		HTMLURL string `json:"html_url"`
-	}
+	var release releaseResponse
 	if err := json.NewDecoder(resp.Body).Decode(&release); err != nil {
 		return nil, err
 	}
-
-	latestVersion := ensureVPrefix(release.TagName)
-	if !semver.IsValid(latestVersion) {
-		return nil, nil
-	}
-
-	if semver.Compare(latestVersion, normalized) <= 0 {
-		return nil, nil
-	}
-
-	return &ReleaseInfo{Version: release.TagName, URL: release.HTMLURL}, nil
+	return &release, nil
 }
 
 func CheckForUpdateCached(currentVersion, cachePath string, maxAge time.Duration) (*ReleaseInfo, error) {
-	if currentVersion == "" || strings.HasSuffix(currentVersion, "-dev") {
-		return nil, nil
-	}
-	normalized := ensureVPrefix(currentVersion)
-	if !semver.IsValid(normalized) {
+	normalized, ok := normalizeVersion(currentVersion)
+	if !ok {
 		return nil, nil
 	}
 
-	if cached, ok := readFreshCache(cachePath, maxAge); ok {
+	if cached, ok := readFreshCache(cachePath, maxAge); ok && cached.CurrentVersion == normalized {
 		return cached.Latest, nil
 	}
 
-	entry := cacheEntry{CheckedAt: time.Now().UTC()}
-	_ = writeCache(cachePath, entry)
-	info, err := CheckForUpdate(currentVersion)
+	info, err := checkForUpdate(currentVersion)
 	if err != nil {
 		return nil, err
 	}
-	entry.Latest = info
+	entry := cacheEntry{
+		CheckedAt:      time.Now().UTC(),
+		CurrentVersion: normalized,
+		Latest:         info,
+	}
 	_ = writeCache(cachePath, entry)
 	return info, nil
+}
+
+func normalizeVersion(version string) (string, bool) {
+	version = strings.TrimSpace(version)
+	if version == "" || strings.HasSuffix(version, "-dev") {
+		return "", false
+	}
+	normalized := ensureVPrefix(version)
+	return normalized, semver.IsValid(normalized)
+}
+
+func IsReleaseVersion(version string) bool {
+	_, ok := normalizeVersion(version)
+	return ok
 }
 
 func ShouldCheck(configEnabled, quiet bool) bool {

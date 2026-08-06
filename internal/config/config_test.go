@@ -76,6 +76,22 @@ func TestAPIPrefix_default(t *testing.T) {
 	}
 }
 
+func TestUpdateCheckCanBeDisabled(t *testing.T) {
+	t.Setenv("GITEE_CONFIG_DIR", t.TempDir())
+	if err := Load(); err != nil {
+		t.Fatal(err)
+	}
+	if !UpdateCheckEnabled() {
+		t.Fatal("update checks should be enabled by default")
+	}
+	if err := Set(KeyUpdateCheck, "false"); err != nil {
+		t.Fatal(err)
+	}
+	if UpdateCheckEnabled() {
+		t.Fatal("update checks should be disabled after setting update_check=false")
+	}
+}
+
 func TestAICredentialPrecedence(t *testing.T) {
 	tests := []struct {
 		name       string
