@@ -57,7 +57,8 @@ release_id=$(printf '%s' "$release_json" | jq -r '(.id // 0) | select(. > 0)' 2>
 
 if [ -z "$release_id" ]; then
   set -- release create --hostname "$GITEE_HOSTNAME" -R "$GITEE_REPO" \
-    --tag "$RELEASE_TAG" --name "$RELEASE_NAME" --target "$RELEASE_TARGET"
+    --tag "$RELEASE_TAG" --name "$RELEASE_NAME" --target "$RELEASE_TARGET" \
+    --body "$(cat "$RELEASE_NOTES_FILE")"
   case "$RELEASE_TAG" in
     *-*) set -- "$@" --prerelease ;;
   esac
