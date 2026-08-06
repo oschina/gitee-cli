@@ -64,12 +64,14 @@ $ gitee auth login
 $ gitee pr list
 $ gitee pr checkout 123
 $ gitee issue list -s open
+$ gitee search repos gitee-cli
 $ gitee api /user
 ```
 
 | 目标 | 命令 |
 |---|---|
 | 登录 Gitee | `gitee auth login` |
+| 搜索仓库、Issue 或用户 | `gitee search repos <query>` |
 | 在仓库目录之外执行命令 | `gitee pr list -R owner/repo` |
 | 开启交互式表格 | `gitee config set tui true` |
 | 将界面切换为中文 | `gitee config set locale zh_CN` |

@@ -64,12 +64,14 @@ $ gitee auth login
 $ gitee pr list
 $ gitee pr checkout 123
 $ gitee issue list -s open
+$ gitee search repos gitee-cli
 $ gitee api /user
 ```
 
 | Goal | Command |
 |---|---|
 | Authenticate | `gitee auth login` |
+| Search repositories, issues, or users | `gitee search repos <query>` |
 | Work outside a repository | `gitee pr list -R owner/repo` |
 | Enable interactive tables | `gitee config set tui true` |
 | Switch the interface to Chinese | `gitee config set locale zh_CN` |

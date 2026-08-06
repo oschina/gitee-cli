@@ -199,6 +199,18 @@ func TestAllCommandsRenderHelp(t *testing.T) {
 	visit(rootCmd)
 }
 
+func TestRootRegistersSearchInsteadOfUser(t *testing.T) {
+	rootCmd := NewRootCmd(context.Background(), newTestFactory())
+	if command, _, err := rootCmd.Find([]string{"search", "repos"}); err != nil || command.Name() != "repos" {
+		t.Fatalf("search repos command not registered: command=%v err=%v", command, err)
+	}
+	for _, command := range rootCmd.Commands() {
+		if command.Name() == "user" {
+			t.Fatal("legacy user command is still registered")
+		}
+	}
+}
+
 func TestHasQuietFlag(t *testing.T) {
 	for _, args := range [][]string{{"pr", "list", "--quiet"}, {"-q", "version"}, {"pr", "list", "-Vq"}} {
 		if !hasQuietFlag(args) {

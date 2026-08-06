@@ -114,6 +114,7 @@ type Issue struct {
 	User       User       `json:"user"`
 	Assignee   *User      `json:"assignee"`
 	Labels     []Label    `json:"labels"`
+	Repository Repository `json:"repository"`
 	CreatedAt  time.Time  `json:"created_at"`
 	UpdatedAt  time.Time  `json:"updated_at"`
 	FinishedAt *time.Time `json:"finished_at"`

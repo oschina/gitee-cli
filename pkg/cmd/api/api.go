@@ -48,6 +48,7 @@ Common endpoints:
   /repos/{owner}/{repo}/pulls              - pull requests
   /repos/{owner}/{repo}/releases           - releases
   /repos/{owner}/{repo}/contents/{path}    - file content
+  /search/repositories?q={query}           - search repositories
   /search/issues?q={query}                 - search issues
   /search/users?q={query}                  - search users`,
 		Example: `  gitee api --search "create issue"
