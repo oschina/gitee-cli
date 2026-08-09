@@ -5,6 +5,37 @@ format follows Keep a Changelog, and releases use Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-08-09
+
+### Added
+
+- Offline `gitee skills list`, `install`, and `uninstall` commands with five
+  embedded Agent Skills: `gitee-pr`, `gitee-issue`, `gitee-repo`,
+  `gitee-search`, and `gitee-api`.
+- JSON output and field selection for `gitee pr diff`.
+- Custom Agent Skills installation directories through `--dir` or the
+  `AGENTS_SKILLS_DIR` environment variable.
+
+### Changed
+
+- Treat npm as the primary installation channel in the user documentation.
+- Mirror managed Agent Skill directories during installation, clean up names
+  deprecated by earlier releases, and preserve skills from other sources.
+- Validate embedded Agent Skills and compatibility scripts during release
+  preflight.
+- Relax the source build requirement from Go 1.25.12 to Go 1.25 or newer.
+
+### Removed
+
+- Remove the `gitee gist` command and the associated Gist API client.
+
+### Fixed
+
+- Keep `gitee skills` plain-text output correctly formatted in non-TUI
+  environments.
+
+## [0.1.0] - 2026-08-06
+
 ### Added
 
 - Core Gitee workflows for pull requests, issues, repositories, releases,
@@ -19,8 +50,6 @@ format follows Keep a Changelog, and releases use Semantic Versioning.
 - Cross-platform binary and npm packaging for Linux, macOS, and Windows.
 - Release checksums, release-note generation, and resumable publishing tools.
 - Contribution, security, conduct, and release documentation.
-- Five embedded Agent Skills with offline `gitee skills` management,
-  migration-aware installation, and validation integrated into release preflight.
 
 ### Fixed
 
