@@ -25,7 +25,7 @@ RELEASE_DIR_ABS = $(abspath $(RELEASE_DIR))
 
 export NPM_VERSION NPM_TOKEN
 
-.PHONY: build install clean lint tidy test release release-check release-note release-publish build-all-platforms npm-copy-binaries npm-publish
+.PHONY: build install clean lint tidy test skills-check release release-check release-note release-publish build-all-platforms npm-copy-binaries npm-publish
 
 GIT_TAG     := $(shell git describe --tags --exact-match 2>/dev/null)
 GIT_COMMIT  := $(shell git rev-parse --short HEAD)
@@ -67,12 +67,33 @@ test:
 tidy:
 	@go mod tidy
 
+skills-check:
+	@set -eu; count=0; \
+	for file in skills/*/SKILL.md; do \
+		[ -f "$$file" ] || continue; \
+		dir="$$(basename "$$(dirname "$$file")")"; \
+		name="$$(sed -n 's/^name:[[:space:]]*//p' "$$file" | head -n 1)"; \
+		[ "$$name" = "$$dir" ] || { echo "Skill name mismatch: $$file declares $$name" >&2; exit 1; }; \
+		grep -q '^description:' "$$file" || { echo "Missing description: $$file" >&2; exit 1; }; \
+		grep -q '^compatibility:' "$$file" || { echo "Missing compatibility: $$file" >&2; exit 1; }; \
+		count=$$((count + 1)); \
+	done; \
+	[ "$$count" -eq 5 ] || { echo "Expected 5 skills, found $$count" >&2; exit 1; }
+	@if grep -Enr '^[[:space:]]*gitee .*--ai' skills/*/SKILL.md; then \
+		echo "Executable gitee --ai command found in skills" >&2; \
+		exit 1; \
+	fi
+	@sh -n skills/install.sh
+	@sh -n skills/uninstall.sh
+	@echo "Agent Skills checks passed."
+
 release-check:
 	@test -n "$(RELEASE_VERSION)" || { echo "VERSION is required (for example: make release VERSION=1.2.3)" >&2; exit 2; }
 	@printf '%s\n' "$(RELEASE_VERSION)" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$$' || { echo "VERSION must be valid SemVer without build metadata: $(VERSION)" >&2; exit 2; }
 	@test -z "$$(git status --porcelain)" || { echo "Working tree must be clean before building a release" >&2; exit 2; }
 	@git tag --points-at HEAD | grep -Fqx "$(RELEASE_TAG)" || { echo "HEAD must be tagged $(RELEASE_TAG) before building a release" >&2; exit 2; }
 	@test -z "$$(gofmt -l .)" || { echo "Go files are not formatted; run gofmt before releasing" >&2; exit 2; }
+	@$(MAKE) skills-check
 	@go mod tidy -diff
 	@go test ./...
 	@go test -race ./...

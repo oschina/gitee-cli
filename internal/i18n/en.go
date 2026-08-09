@@ -99,6 +99,14 @@ var en = map[string]string{
 	"alias.added":      "Added alias: %s → %s\n",
 	"alias.deleted":    "Deleted alias: %s\n",
 
+	// skills
+	"skills.installed":         "installed",
+	"skills.not_installed":     "not installed",
+	"skills.install_done":      "Installed %d Agent Skills to %s\n",
+	"skills.legacy_removed":    "Removed %d legacy skill directories\n",
+	"skills.uninstall_confirm": "Uninstall Gitee CLI Agent Skills from %s?",
+	"skills.uninstall_done":    "Removed %d Agent Skills from %s\n",
+
 	// user
 	"user.no_results": "No users found",
 

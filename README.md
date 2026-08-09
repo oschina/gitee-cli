@@ -14,7 +14,7 @@ Pull requests · Issues · Repositories · Releases · AI workflows · Gitee API
 
 **English** · [简体中文](README_zh.md)
 
-[Quick start](#quick-start) · [Commands](#commands) · [Agent workflows](#agent-workflows) · [Practice guides](#practice-guides) · [Contributing](#contributing)
+[Quick start](#quick-start) · [Commands](#commands) · [Agent workflows](#agent-workflows) · [Agent Skills](#agent-skills) · [Practice guides](#practice-guides) · [Contributing](#contributing)
 
 </div>
 
@@ -144,6 +144,7 @@ Tokens for non-default hosts are stored in `~/.config/gitee/hosts.yml`.
 | `gist` | `list`, `view`, `create`, `delete` | Manage gists |
 | `ssh-key` | `list`, `add`, `delete` | Manage SSH keys (supports stdin input) |
 | `search` | `repos`, `issues`, `users` | Search across Gitee |
+| `skills` | `list`, `install`, `uninstall` | Manage bundled Agent Skills offline |
 | `update` | `--check`, `--yes` | Check for and install CLI updates |
 | `alias` | `list`, `set`, `delete` | Manage command aliases |
 | `ai` | `[prompt]`, `--chat` | Chat with an OpenAI-compatible model |
@@ -165,6 +166,21 @@ gitee api /repos/owner/repo/pulls --hostname gitee.com
 Diagnostics stay on stderr, so JSON on stdout remains safe to parse. For patterns
 covering scripts, CI, aliases, and raw endpoints, see the
 [Agent and automation guide](docs/usage.md#agent-and-automation-workflows).
+
+## Agent Skills
+
+Every Gitee CLI release embeds five Agent Skills for safe, non-interactive
+workflows: `gitee-pr`, `gitee-issue`, `gitee-repo`, `gitee-search`, and
+`gitee-api`. Install or update them offline with:
+
+```bash
+gitee skills install
+```
+
+The installer mirrors these skills into `~/.agents/skills/`, removes names
+deprecated by earlier releases, and leaves unrelated skills untouched. Reload
+your coding agent after installation. See the [Agent Skills guide](skills/README.md)
+for capabilities, safety rules, custom directories, and source-checkout fallback.
 
 ## Practice Guides
 

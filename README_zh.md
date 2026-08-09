@@ -14,7 +14,7 @@ Pull Request · Issue · 仓库 · Release · AI 工作流 · Gitee API
 
 [English](README.md) · **简体中文**
 
-[快速开始](#快速开始) · [命令一览](#命令一览) · [Agent 工作流](#agent-工作流) · [实践指南](#实践指南) · [参与贡献](#参与贡献)
+[快速开始](#快速开始) · [命令一览](#命令一览) · [Agent 工作流](#agent-工作流) · [Agent Skills](#agent-skills) · [实践指南](#实践指南) · [参与贡献](#参与贡献)
 
 </div>
 
@@ -143,6 +143,7 @@ gitee auth logout --hostname git.company.com
 | `gist` | `list`, `view`, `create`, `delete` | 管理 Gist |
 | `ssh-key` | `list`, `add`, `delete` | 管理 SSH Key |
 | `search` | `repos`, `issues`, `users` | 在 Gitee 全站搜索 |
+| `skills` | `list`, `install`, `uninstall` | 离线管理内置 Agent Skills |
 | `update` | `--check`, `--yes` | 检查并安装 CLI 更新 |
 | `alias` | `list`, `set`, `delete` | 管理命令别名 |
 | `ai` | `[prompt]`, `--chat` | 与 OpenAI 兼容模型对话 |
@@ -163,6 +164,20 @@ gitee api /repos/owner/repo/pulls --hostname gitee.com
 
 诊断信息写入 stderr，不会污染 stdout 中供 Agent 解析的 JSON。脚本、CI、别名和
 原始接口的组合方式见 [Agent 与自动化指南](docs/usage_zh.md#agent-与自动化工作流)。
+
+## Agent Skills
+
+每个 Gitee CLI 版本都内置五个面向安全、非交互式 Gitee 工作流的 Agent Skills：
+`gitee-pr`、`gitee-issue`、`gitee-repo`、`gitee-search` 和 `gitee-api`。
+无需联网即可安装或更新：
+
+```bash
+gitee skills install
+```
+
+安装命令会把这些 Skill 镜像到 `~/.agents/skills/`，清理历史版本使用过的废弃名称，
+并保留其他来源的 Skill。安装完成后请重新加载编码 Agent。完整能力、安全规则、
+自定义目录、卸载方式和源码检出兼容入口见 [Agent Skills 指南](skills/README.md)。
 
 ## 实践指南
 

@@ -20,6 +20,7 @@ separate:
 gitee-cli/
 ├── cmd/gitee/          # CLI entry point
 ├── internal/           # Private configuration, i18n, and version packages
+├── skills/             # Agent Skills, installer, and skill documentation
 └── pkg/
     ├── cmd/            # Command implementations
     ├── cmdutil/        # Shared command factories, errors, and prompts
@@ -40,6 +41,7 @@ make build          # build ./bin/gitee
 make install        # install to $HOME/bin/gitee
 make test           # run go test ./...
 make lint           # run golangci-lint
+make skills-check   # validate Agent Skills and installer scripts
 ```
 
 Without Make:
@@ -64,6 +66,10 @@ New commands and behavior changes must include tests for non-interactive use.
 Machine-readable output must remain valid JSON on stdout, with diagnostics on
 stderr. Destructive commands must require confirmation or an explicit
 `--yes` flag outside a terminal.
+
+Changes to CLI commands, flags, JSON fields, or safety behavior must update the
+matching files under `skills/` in the same pull request. Run `make skills-check`
+before submitting changes that affect Agent workflows.
 
 ### Release
 

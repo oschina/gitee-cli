@@ -19,6 +19,8 @@ format follows Keep a Changelog, and releases use Semantic Versioning.
 - Cross-platform binary and npm packaging for Linux, macOS, and Windows.
 - Release checksums, release-note generation, and resumable publishing tools.
 - Contribution, security, conduct, and release documentation.
+- Five embedded Agent Skills with offline `gitee skills` management,
+  migration-aware installation, and validation integrated into release preflight.
 
 ### Fixed
 

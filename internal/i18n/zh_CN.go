@@ -91,6 +91,13 @@ var zhCN = map[string]string{
 	"alias.added":      "已添加别名：%s → %s\n",
 	"alias.deleted":    "已删除别名：%s\n",
 
+	"skills.installed":         "已安装",
+	"skills.not_installed":     "未安装",
+	"skills.install_done":      "已安装 %d 个 Agent Skills 到 %s\n",
+	"skills.legacy_removed":    "已清理 %d 个旧名称目录\n",
+	"skills.uninstall_confirm": "确认从 %s 卸载 Gitee CLI Agent Skills？",
+	"skills.uninstall_done":    "已从 %[2]s 移除 %[1]d 个 Agent Skills\n",
+
 	"user.no_results": "未找到任何用户",
 
 	"form.issue.title":         "标题",

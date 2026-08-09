@@ -28,6 +28,7 @@ import (
 	"gitee.com/oschina/gitee-cli/pkg/cmd/release"
 	"gitee.com/oschina/gitee-cli/pkg/cmd/repo"
 	"gitee.com/oschina/gitee-cli/pkg/cmd/search"
+	"gitee.com/oschina/gitee-cli/pkg/cmd/skills"
 	sshkey "gitee.com/oschina/gitee-cli/pkg/cmd/ssh-key"
 	updatecmd "gitee.com/oschina/gitee-cli/pkg/cmd/update"
 	"gitee.com/oschina/gitee-cli/pkg/cmd/version"
@@ -85,6 +86,7 @@ func NewRootCmd(ctx context.Context, f *cmdutil.Factory) *cobra.Command {
 	cmd.AddCommand(release.NewReleaseCmd(f))
 	cmd.AddCommand(sshkey.NewSSHKeyCmd(f))
 	cmd.AddCommand(search.NewSearchCmd(f))
+	cmd.AddCommand(skills.NewSkillsCmd(f))
 	cmd.AddCommand(updatecmd.NewUpdateCmd(f))
 	cmd.AddCommand(version.NewVersionCmd(f))
 	cmd.AddCommand(alias.NewAliasCmd(f))
@@ -155,7 +157,7 @@ func skipUpdateForArgs(args []string) bool {
 			return true
 		}
 	}
-	return args[0] == "help" || args[0] == "version" || args[0] == "completion" || args[0] == "update"
+	return args[0] == "help" || args[0] == "version" || args[0] == "completion" || args[0] == "update" || args[0] == "skills"
 }
 
 func expandAlias(rootCmd *cobra.Command, args []string) ([]string, bool) {
