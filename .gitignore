@@ -29,3 +29,6 @@ PRD.md
 # npm platform binaries (should be built, not committed)
 /npm/gitee-cli-*/bin/
 .npmrc
+
+# Homebrew install test residue (unexpanded template vars)
+/{{*}}/

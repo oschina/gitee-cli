@@ -88,12 +88,6 @@ var en = map[string]string{
 	"release.deleted":        "Deleted release %s\n",
 	"release.delete_confirm": "Delete release %s?",
 
-	// gist
-	"gist.no_results":     "No gists found",
-	"gist.created":        "Created gist %s: %s\n",
-	"gist.deleted":        "Deleted gist %s\n",
-	"gist.delete_confirm": "Delete gist %s?",
-
 	// ssh-key
 	"sshkey.no_results":     "No SSH keys found",
 	"sshkey.added":          "Added SSH key (id: %d)\n",

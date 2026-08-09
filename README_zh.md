@@ -8,7 +8,7 @@
 
 Pull Request · Issue · 仓库 · Release · AI 工作流 · Gitee API
 
-[![Go 版本](https://img.shields.io/badge/Go-1.25.12+-00ADD8?logo=go&logoColor=white)](https://go.dev/dl/)
+[![Go 版本](https://img.shields.io/badge/Go-1.25+-00ADD8?logo=go&logoColor=white)](https://go.dev/dl/)
 [![许可证](https://img.shields.io/badge/License-MIT-2F6FEB)](LICENSE)
 ![支持平台](https://img.shields.io/badge/平台-macOS%20%7C%20Linux%20%7C%20Windows-4C566A)
 
@@ -48,7 +48,7 @@ gitee --version
 
 ### 从源码构建
 
-需要 Go 1.25.12 或更高版本。
+需要 Go 1.25 或更高版本。
 
 ```bash
 git clone https://gitee.com/oschina/gitee-cli.git
@@ -79,6 +79,10 @@ $ gitee issue list -s open
 $ gitee search repos gitee-cli
 $ gitee api /user
 ```
+
+<div align="center">
+  <img src="docs/assets/overview.png" alt="Gitee CLI 概览" width="720">
+</div>
 
 | 目标 | 命令 |
 |---|---|

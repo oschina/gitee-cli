@@ -82,11 +82,6 @@ var zhCN = map[string]string{
 	"release.deleted":        "已删除 Release %s\n",
 	"release.delete_confirm": "确认删除 Release %s？",
 
-	"gist.no_results":     "未找到任何 Gist",
-	"gist.created":        "已创建 Gist %s：%s\n",
-	"gist.deleted":        "已删除 Gist %s\n",
-	"gist.delete_confirm": "确认删除 Gist %s？",
-
 	"sshkey.no_results":     "未找到任何 SSH 密钥",
 	"sshkey.added":          "已添加 SSH 密钥（ID：%d）\n",
 	"sshkey.deleted":        "已删除 SSH 密钥 %d\n",

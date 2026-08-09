@@ -315,6 +315,60 @@ func TestPRDiffCmd_plainText(t *testing.T) {
 	}
 }
 
+func TestPRDiffCmd_json(t *testing.T) {
+	status := "modified"
+	files := []gitee.DiffFile{
+		{
+			Filename:  "file.go",
+			Status:    &status,
+			Additions: "1",
+			Deletions: "1",
+			Patch: gitee.PatchInfo{
+				OldPath: "file.go",
+				NewPath: "file.go",
+				Diff:    "@@ -1 +1 @@\n-old line\n+new line\n",
+			},
+		},
+	}
+	out, err := runPRCmd([]string{"diff", "10", "-R", "owner/repo", "-j"}, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(files)
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got []gitee.DiffFile
+	if err := json.Unmarshal([]byte(out), &got); err != nil {
+		t.Fatalf("expected pure JSON output, got parse error %v; raw: %s", err, out)
+	}
+	if len(got) != 1 || got[0].Filename != "file.go" {
+		t.Errorf("expected 1 file 'file.go', got: %s", out)
+	}
+	if strings.Contains(out, "diff --git") {
+		t.Errorf("JSON mode should not emit plain-text diff, got: %s", out)
+	}
+}
+
+func TestPRDiffCmd_jsonFields(t *testing.T) {
+	files := []gitee.DiffFile{{Filename: "a.go", Additions: "3", Deletions: "0"}}
+	out, err := runPRCmd([]string{"diff", "10", "-R", "owner/repo", "--json=filename,additions"}, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		json.NewEncoder(w).Encode(files)
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got []map[string]any
+	if err := json.Unmarshal([]byte(out), &got); err != nil {
+		t.Fatalf("expected pure JSON output, got parse error %v; raw: %s", err, out)
+	}
+	if len(got) != 1 || got[0]["filename"] != "a.go" {
+		t.Errorf("expected selected field filename=a.go, got: %s", out)
+	}
+	if _, hasDeletions := got[0]["deletions"]; hasDeletions {
+		t.Errorf("field selection should exclude 'deletions', got: %s", out)
+	}
+}
+
 func TestPRDiffCmd_invalidNumber(t *testing.T) {
 	_, err := runPRCmd([]string{"diff", "notanumber", "-R", "owner/repo"}, http.NotFoundHandler())
 	if err == nil {
