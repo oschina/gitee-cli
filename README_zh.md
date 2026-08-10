@@ -34,6 +34,25 @@ Pull Request · Issue · 仓库 · Release · AI 工作流 · Gitee API
 
 ## 安装
 
+### 安装脚本（macOS / Linux）
+
+一条命令下载并安装最新版本：
+
+```bash
+curl -fsSL https://gitee.com/oschina/gitee-cli/raw/main/scripts/install.sh | sh
+```
+
+脚本会自动检测平台、校验 SHA-256 校验和，并将 `gitee` 二进制安装到
+`$HOME/.local/bin`（以 root 运行时安装到 `/usr/local/bin`）。可通过环境变量
+指定版本或安装目录：
+
+```bash
+GITEE_CLI_VERSION=1.2.3 INSTALL_DIR="$HOME/bin" \
+  sh -c "$(curl -fsSL https://gitee.com/oschina/gitee-cli/raw/main/scripts/install.sh)"
+```
+
+### npm
+
 通过 npm 全局安装最新版本：
 
 ```bash

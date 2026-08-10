@@ -34,6 +34,25 @@ Pull requests · Issues · Repositories · Releases · AI workflows · Gitee API
 
 ## Installation
 
+### Install script (macOS / Linux)
+
+Download and install the latest release with a single command:
+
+```bash
+curl -fsSL https://gitee.com/oschina/gitee-cli/raw/main/scripts/install.sh | sh
+```
+
+The script detects your platform, verifies the SHA-256 checksum, and installs
+the `gitee` binary to `$HOME/.local/bin` (or `/usr/local/bin` when run as root).
+Pin a version or change the target directory with environment variables:
+
+```bash
+GITEE_CLI_VERSION=1.2.3 INSTALL_DIR="$HOME/bin" \
+  sh -c "$(curl -fsSL https://gitee.com/oschina/gitee-cli/raw/main/scripts/install.sh)"
+```
+
+### npm
+
 Install the latest release globally with npm:
 
 ```bash
