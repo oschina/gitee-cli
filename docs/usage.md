@@ -85,19 +85,20 @@ gitee issue close ICX4FO --quiet
 Aliases persist in `~/.config/gitee/config.yml`:
 
 ```bash
-gitee alias set prs "pr list -s open"
-gitee alias set myissues "issue list -A me -s open"
+gitee alias set prs 'pr list -s open'
+gitee alias set myissues 'issue list -A $1 -s open'
 gitee prs
-gitee myissues
+gitee myissues alice
 gitee alias list
 gitee alias delete prs
 ```
 
 Prefix an expansion with `!` to compose a shell workflow. Positional variables
-such as `$1` and extra arguments are supported.
+such as `$1` and extra arguments are supported. Quote the expansion with single
+quotes so your shell does not expand `$1` or `$(...)` before gitee receives them.
 
 ```bash
-gitee alias set deploy "!PR=\$(gitee pr create --base \$1 --json | jq -r .number) && gitee pr comment \$PR -b ci_deploy"
+gitee alias set deploy '!PR=$(gitee pr create --base $1 --json | jq -r .number) && gitee pr comment $PR -b ci_deploy'
 gitee deploy main
 ```
 

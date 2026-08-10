@@ -83,18 +83,18 @@ gitee issue close ICX4FO --quiet
 别名保存在 `~/.config/gitee/config.yml` 中，可跨会话使用：
 
 ```bash
-gitee alias set prs "pr list -s open"
-gitee alias set myissues "issue list -A me -s open"
+gitee alias set prs 'pr list -s open'
+gitee alias set myissues 'issue list -A $1 -s open'
 gitee prs
-gitee myissues
+gitee myissues alice
 gitee alias list
 gitee alias delete prs
 ```
 
-在展开内容前添加 `!` 可以组合 Shell 工作流，并支持 `$1` 等位置变量和额外参数。
+在展开内容前添加 `!` 可以组合 Shell 工作流，并支持 `$1` 等位置变量和额外参数。请用单引号包裹展开内容，以免 Shell 在 gitee 收到之前就展开了 `$1` 或 `$(...)`。
 
 ```bash
-gitee alias set deploy "!PR=\$(gitee pr create --base \$1 --json | jq -r .number) && gitee pr comment \$PR -b ci_deploy"
+gitee alias set deploy '!PR=$(gitee pr create --base $1 --json | jq -r .number) && gitee pr comment $PR -b ci_deploy'
 gitee deploy main
 ```
 

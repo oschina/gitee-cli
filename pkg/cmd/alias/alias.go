@@ -35,17 +35,20 @@ gitee sub-command. Positional variables and extra-argument appending work
 the same way. The command is executed via sh -c on Unix or cmd /c on Windows.
 
 Examples:
-  gitee alias set prs "pr list -s open"
+  gitee alias set prs 'pr list -s open'
   gitee prs                     → gitee pr list -s open
 
-  gitee alias set build "pr comment $1 -b $2"
+  gitee alias set build 'pr comment $1 -b $2'
   gitee build 123 deployed      → gitee pr comment 123 -b deployed
 
-  gitee alias set myissues "issue list -A $1 -s open"
+  gitee alias set myissues 'issue list -A $1 -s open'
   gitee myissues alice           → gitee issue list -A alice -s open
 
-  gitee alias set deploy "!PR=$(gitee pr create --base $1 --json | jq -r .number) && gitee pr comment $PR -b ci_deploy"
-  gitee deploy main              → creates a PR against main, then comments ci_deploy`,
+  gitee alias set deploy '!PR=$(gitee pr create --base $1 --json | jq -r .number) && gitee pr comment $PR -b ci_deploy'
+  gitee deploy main              → creates a PR against main, then comments ci_deploy
+
+Quote the expansion with single quotes so your shell does not expand
+$1, $2, or $(...) before gitee receives them.`,
 	}
 	cmd.AddCommand(newAliasListCmd(f))
 	cmd.AddCommand(newAliasSetCmd(f))
@@ -185,11 +188,14 @@ Positional variables $1, $2, ... are replaced by arguments passed
 after the alias name. If no positional variables appear, extra
 arguments are appended to the end.
 
+Quote the expansion with single quotes so your shell does not expand
+$1, $2, or $(...) before gitee receives them.
+
 Prefix the expansion with ! to run an arbitrary shell command
 instead of a gitee sub-command.`,
-		Example: `  gitee alias set prs "pr list -s open"
-  gitee alias set myissues "issue list -A $1 -s open"
-  gitee alias set deploy "!PR=$(gitee pr create --base $1 --json | jq -r .number) && gitee pr comment $PR -b ci_deploy"`,
+		Example: `  gitee alias set prs 'pr list -s open'
+  gitee alias set myissues 'issue list -A $1 -s open'
+  gitee alias set deploy '!PR=$(gitee pr create --base $1 --json | jq -r .number) && gitee pr comment $PR -b ci_deploy'`,
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			name, expansion := args[0], args[1]
