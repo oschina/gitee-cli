@@ -217,7 +217,7 @@ README 只保留上手所需内容，详细用法集中在一份可按章节跳�
 ## 参与贡献
 
 - 开发和 Pull Request 要求见 [CONTRIBUTING.md](CONTRIBUTING.md)。
-- 安全问题请按照 [SECURITY.md](SECURITY.md) 私下报告；
+- 安全问题请按照 [SECURITY.md](SECURITY.md) 私下报告。
 - 所有参与者均需遵守 [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)。
 
 ---
