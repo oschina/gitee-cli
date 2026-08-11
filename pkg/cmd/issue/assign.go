@@ -32,7 +32,7 @@ The assignee is the Gitee login name, not the display name.`,
 				return err
 			}
 			_, err = client.UpdateIssue(f.Context, owner, repo, number, &gitee.UpdateIssueParams{
-				Assignee: assignee,
+				Assignee: &assignee,
 			})
 			if err != nil {
 				return fmt.Errorf("failed to assign issue %s: %w", number, err)

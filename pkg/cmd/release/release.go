@@ -24,12 +24,13 @@ func NewReleaseCmd(f *cmdutil.Factory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "release",
 		Short: "Manage releases",
-		Long:  `List, view, create, and delete releases for the repository.`,
+		Long:  `List, view, create, edit, and delete releases for the repository.`,
 	}
 	cmd.PersistentFlags().StringP("repo", "R", "", "owner/repo (default: inferred from git remote)")
 	cmd.AddCommand(newReleaseListCmd(f))
 	cmd.AddCommand(newReleaseViewCmd(f))
 	cmd.AddCommand(newReleaseCreateCmd(f))
+	cmd.AddCommand(newReleaseEditCmd(f))
 	cmd.AddCommand(newReleaseDeleteCmd(f))
 	return cmd
 }
@@ -230,6 +231,16 @@ pre-release.`,
 			}
 			if name == "" {
 				name = tagName
+			}
+			if target == "" {
+				repository, err := client.GetRepo(f.Context, owner, repo)
+				if err != nil {
+					return fmt.Errorf("failed to resolve default branch: %w", err)
+				}
+				target = repository.DefaultBranch
+				if target == "" {
+					return fmt.Errorf("failed to resolve default branch: repository returned an empty default_branch")
+				}
 			}
 			r, err := client.CreateRelease(f.Context, owner, repo, &gitee.CreateReleaseParams{
 				TagName:         tagName,

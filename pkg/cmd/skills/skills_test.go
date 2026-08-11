@@ -52,7 +52,7 @@ func TestInstallListAndReinstall(t *testing.T) {
 	if err := json.Unmarshal([]byte(out), &result); err != nil {
 		t.Fatalf("decode install JSON: %v\n%s", err, out)
 	}
-	if len(result.Installed) != 5 {
+	if len(result.Installed) != 6 {
 		t.Fatalf("installed = %v", result.Installed)
 	}
 	if len(result.RemovedLegacy) != len(legacySkillNames) {
@@ -79,6 +79,13 @@ func TestInstallListAndReinstall(t *testing.T) {
 			t.Fatalf("installed %s does not match embedded content", name)
 		}
 	}
+	openAIYAML, err := os.ReadFile(filepath.Join(target, "gitee-release", "agents", "openai.yaml"))
+	if err != nil {
+		t.Fatalf("read installed gitee-release agents metadata: %v", err)
+	}
+	if !bytes.Contains(openAIYAML, []byte("display_name: \"Gitee Releases\"")) {
+		t.Fatalf("unexpected gitee-release agents metadata: %s", openAIYAML)
+	}
 
 	stale := filepath.Join(target, "gitee-api", "stale.txt")
 	if err := os.WriteFile(stale, []byte("stale"), 0o644); err != nil {
@@ -99,7 +106,7 @@ func TestInstallListAndReinstall(t *testing.T) {
 	if err := json.Unmarshal([]byte(out), &statuses); err != nil {
 		t.Fatal(err)
 	}
-	if len(statuses) != 5 {
+	if len(statuses) != 6 {
 		t.Fatalf("statuses = %v", statuses)
 	}
 	for _, status := range statuses {
@@ -157,7 +164,7 @@ func TestUninstallRemovesOnlyManagedSkills(t *testing.T) {
 	if err := json.Unmarshal([]byte(out), &result); err != nil {
 		t.Fatal(err)
 	}
-	if len(result.Removed) != 7 {
+	if len(result.Removed) != 8 {
 		t.Fatalf("removed = %v", result.Removed)
 	}
 	if _, err := os.Stat(unrelated); err != nil {

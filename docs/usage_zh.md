@@ -66,9 +66,14 @@ gitee pr fetch 42 --branch review-42
 # 创建带审查人员和测试人员的 PR。
 gitee pr create --title "Fix login" --assignees alice,bob --testers carol
 
+# 非交互编辑 PR 或 Release。
+gitee pr edit 42 --title "更新后的标题" --draft=false --json --no-tui
+gitee release edit v1.2.0 --name "Version 1.2" --json --no-tui
+
 # 创建或指派 Issue。
 gitee issue create --ai
 gitee issue assign IJEE10 alice
+gitee issue edit IJEE10 --labels bug,urgent --milestone 12 --json --no-tui
 
 # 从文件或 stdin 添加 SSH Key。
 gitee ssh-key add --title "My laptop" --file ~/.ssh/id_rsa.pub

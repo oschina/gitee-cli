@@ -125,10 +125,11 @@ func (c *Client) CreatePull(ctx context.Context, owner, repo string, params *Cre
 }
 
 type UpdatePullParams struct {
-	Title string `json:"title,omitempty"`
-	Body  string `json:"body,omitempty"`
-	State string `json:"state,omitempty"`
-	Base  string `json:"base,omitempty"`
+	Title string  `json:"title,omitempty"`
+	Body  *string `json:"body,omitempty"`
+	State string  `json:"state,omitempty"`
+	Base  string  `json:"base,omitempty"`
+	Draft *bool   `json:"draft,omitempty"`
 }
 
 func (c *Client) UpdatePull(ctx context.Context, owner, repo string, number int, params *UpdatePullParams) (*PullRequest, error) {

@@ -24,7 +24,7 @@ Pull requests · Issues · Repositories · Releases · AI workflows · Gitee API
 
 | Core capability |
 |---|
-| **Daily workflows** · Manage PRs, issues, repositories, releases, gists, SSH keys, and raw API calls. |
+| **Daily workflows** · Manage PRs, issues, repositories, releases, SSH keys, and raw API calls. |
 | **Terminal UI** · Browse and act on results in interactive tables with contextual key bindings. |
 | **Automation** · Use JSON output, explicit non-interactive flags, aliases, and shell completion. |
 | **Agent-friendly** · Combine structured JSON, explicit `--repo` and `--hostname` targeting, non-interactive flags, and raw `gitee api` access in tool-driven workflows. |
@@ -156,11 +156,10 @@ Tokens for non-default hosts are stored in `~/.config/gitee/hosts.yml`.
 |---|---|---|
 | `auth` | `login`, `logout`, `status`, `token` | Manage authentication |
 | `config` | `get`, `set`, `list` | Manage configuration values |
-| `pr` | `list`, `view`, `create`, `close`, `reopen`, `merge`, `review`, `comment`, `diff`, `fetch`, `checkout` | Manage pull requests |
-| `issue` | `list`, `view`, `create`, `close`, `reopen`, `edit`, `assign`, `comment` | Manage issues |
+| `pr` | `list`, `view`, `create`, `edit`, `close`, `reopen`, `merge`, `review`, `comment`, `diff`, `fetch`, `checkout` | Manage pull requests |
+| `issue` | `list`, `view`, `create`, `edit`, `close`, `reopen`, `assign`, `comment` | Manage issues |
 | `repo` | `list`, `view`, `clone`, `create`, `fork`, `delete` | Manage repositories |
-| `release` | `list`, `view`, `create`, `delete` | Manage releases |
-| `gist` | `list`, `view`, `create`, `delete` | Manage gists |
+| `release` | `list`, `view`, `create`, `edit`, `delete` | Manage releases |
 | `ssh-key` | `list`, `add`, `delete` | Manage SSH keys (supports stdin input) |
 | `search` | `repos`, `issues`, `users` | Search across Gitee |
 | `skills` | `list`, `install`, `uninstall` | Manage bundled Agent Skills offline |
@@ -188,9 +187,9 @@ covering scripts, CI, aliases, and raw endpoints, see the
 
 ## Agent Skills
 
-Every Gitee CLI release embeds five Agent Skills for safe, non-interactive
-workflows: `gitee-pr`, `gitee-issue`, `gitee-repo`, `gitee-search`, and
-`gitee-api`. Install or update them offline with:
+Every Gitee CLI release embeds six Agent Skills for safe, non-interactive
+workflows: `gitee-pr`, `gitee-issue`, `gitee-release`, `gitee-repo`,
+`gitee-search`, and `gitee-api`. Install or update them offline with:
 
 ```bash
 gitee skills install

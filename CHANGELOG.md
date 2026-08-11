@@ -5,6 +5,27 @@ format follows Keep a Changelog, and releases use Semantic Versioning.
 
 ## [Unreleased]
 
+### Added
+
+- Add `gitee pr edit` and `gitee release edit` with non-interactive field
+  updates and JSON output.
+- Add the `gitee-release` Agent Skill for release creation, inspection,
+  editing, deletion, and raw API fallback.
+
+### Changed
+
+- Extend `gitee issue edit` with labels and milestones, including explicit
+  clearing of descriptions, assignees, and labels.
+- Route unsupported Agent Skill operations through `gitee api --search`, with
+  a second confirmation before API updates and deletions.
+- Remove obsolete Gist references from the English and Chinese READMEs.
+
+### Fixed
+
+- Resolve and send the repository default branch when `gitee release create`
+  is used without `--target`.
+- Preserve omitted Issue fields instead of serializing unintended defaults.
+
 ## [0.2.0] - 2026-08-09
 
 ### Added

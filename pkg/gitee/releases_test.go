@@ -58,6 +58,33 @@ func TestCreateRelease(t *testing.T) {
 	}
 }
 
+func TestUpdateRelease(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPatch || r.URL.Path != "/repos/owner/repo/releases/5" {
+			t.Fatalf("unexpected request: %s %s", r.Method, r.URL.Path)
+		}
+		var params UpdateReleaseParams
+		if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
+			t.Fatal(err)
+		}
+		json.NewEncoder(w).Encode(Release{ID: 5, TagName: params.TagName, Name: params.Name, Body: params.Body})
+	}))
+	defer srv.Close()
+
+	c := NewClient("tok", WithBaseURL(srv.URL))
+	got, err := c.UpdateRelease(context.Background(), "owner", "repo", 5, &UpdateReleaseParams{
+		TagName: "v2.0.0",
+		Name:    "Version 2",
+		Body:    "",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.ID != 5 || got.TagName != "v2.0.0" {
+		t.Fatalf("unexpected release: %#v", got)
+	}
+}
+
 func TestDeleteRelease(t *testing.T) {
 	called := false
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

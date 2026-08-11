@@ -1,0 +1,4 @@
+interface:
+  display_name: "Gitee Releases"
+  short_description: "Manage Gitee releases from the CLI"
+  default_prompt: "Use $gitee-release to create, inspect, edit, or delete a Gitee release."

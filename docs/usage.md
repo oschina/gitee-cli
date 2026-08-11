@@ -68,9 +68,14 @@ gitee pr fetch 42 --branch review-42
 # Create a PR with reviewers and testers.
 gitee pr create --title "Fix login" --assignees alice,bob --testers carol
 
+# Edit a PR or release non-interactively.
+gitee pr edit 42 --title "Updated title" --draft=false --json --no-tui
+gitee release edit v1.2.0 --name "Version 1.2" --json --no-tui
+
 # Create or assign an issue.
 gitee issue create --ai
 gitee issue assign IJEE10 alice
+gitee issue edit IJEE10 --labels bug,urgent --milestone 12 --json --no-tui
 
 # Add an SSH key from a file or stdin.
 gitee ssh-key add --title "My laptop" --file ~/.ssh/id_rsa.pub

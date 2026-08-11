@@ -104,11 +104,13 @@ func (c *Client) CreateIssue(ctx context.Context, owner, repo string, params *Cr
 }
 
 type UpdateIssueParams struct {
-	Repo     string `json:"repo"`
-	Title    string `json:"title,omitempty"`
-	Body     string `json:"body,omitempty"`
-	State    string `json:"state,omitempty"`
-	Assignee string `json:"assignee,omitempty"`
+	Repo      string  `json:"repo"`
+	Title     string  `json:"title,omitempty"`
+	Body      *string `json:"body,omitempty"`
+	State     string  `json:"state,omitempty"`
+	Assignee  *string `json:"assignee,omitempty"`
+	Labels    *string `json:"labels,omitempty"`
+	Milestone int     `json:"milestone,omitempty"`
 }
 
 func (c *Client) UpdateIssue(ctx context.Context, owner, repo, number string, params *UpdateIssueParams) (*Issue, error) {

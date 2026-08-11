@@ -30,7 +30,13 @@ var en = map[string]string{
 	"pr.assignees_prompt":       "Reviewers (comma-separated, optional):",
 	"pr.testers_prompt":         "Testers (comma-separated, optional):",
 	"pr.confirm_create":         "Create pull request?",
+	"pr.confirm_edit":           "Save changes?",
+	"pr.edit_title_prompt":      "Title:",
+	"pr.draft_status_prompt":    "Draft status:",
+	"pr.draft_status_draft":     "Draft",
+	"pr.draft_status_ready":     "Ready for review",
 	"pr.created":                "Created PR #%d: %s\n",
+	"pr.updated":                "Updated PR #%d: %s\n",
 	"pr.closed":                 "Closed PR #%d\n",
 	"pr.reopened":               "Reopened PR #%d\n",
 	"pr.merged":                 "Merged PR #%d\n",
@@ -83,10 +89,15 @@ var en = map[string]string{
 	"repo.delete_confirm": "Delete repository %s? This cannot be undone.",
 
 	// release
-	"release.no_results":     "No releases found",
-	"release.created":        "Created release %s: %s\n",
-	"release.deleted":        "Deleted release %s\n",
-	"release.delete_confirm": "Delete release %s?",
+	"release.no_results":        "No releases found",
+	"release.created":           "Created release %s: %s\n",
+	"release.updated":           "Updated release %s: %s\n",
+	"release.deleted":           "Deleted release %s\n",
+	"release.confirm_edit":      "Save changes?",
+	"release.status_prompt":     "Release status:",
+	"release.status_prerelease": "Pre-release",
+	"release.status_stable":     "Stable",
+	"release.delete_confirm":    "Delete release %s?",
 
 	// ssh-key
 	"sshkey.no_results":     "No SSH keys found",
@@ -129,7 +140,7 @@ var en = map[string]string{
 	"form.pr.assignees_desc":   "Comma-separated reviewer usernames (optional)",
 	"form.pr.testers":          "Testers",
 	"form.pr.testers_desc":     "Comma-separated tester usernames (optional)",
-	"form.pr.draft":            "Draft PR?",
+	"form.pr.draft":            "Draft?",
 
 	// do
 	"do.usage_hint":          "Please provide a command description, e.g.: gitee do \"create a PR\"",
@@ -151,8 +162,9 @@ var en = map[string]string{
 	"ai.usage_hint": "Please enter a question, e.g.: gitee ai \"What is a Pull Request\"",
 
 	// form.release
-	"form.release.tag":       "Tag",
-	"form.release.name":      "Release name",
-	"form.release.name_desc": "Defaults to tag name if empty",
-	"form.release.body":      "Description",
+	"form.release.tag":        "Tag",
+	"form.release.name":       "Release name",
+	"form.release.name_desc":  "Defaults to tag name if empty",
+	"form.release.body":       "Description",
+	"form.release.prerelease": "Pre-release?",
 }

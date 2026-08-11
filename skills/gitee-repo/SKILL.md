@@ -1,7 +1,6 @@
 ---
 name: gitee-repo
-description: Manage Gitee repositories from the CLI — view details, list your repos, clone, create, fork, and delete. Use when the user says "创建仓库", "新建一个仓库", "fork 这个仓库", "克隆仓库", "clone repo", "查看仓库信息", "列出我的仓库", "删除仓库", "create/fork/clone/delete repo", or "repo info / repo list". Always uses `--json` (where supported) and `--no-tui`; never uses `--ai`; requires explicit user confirmation before deleting a repository (irreversible).
-compatibility: Requires gitee CLI authenticated via `gitee auth login`. Clone/create/fork/delete act on your account or the specified `owner/repo`.
+description: Manage Gitee repositories from the CLI — view details, list, clone, create, fork, and delete. Use when the user asks to create, inspect, list, fork, clone, modify, or delete a repository. Always uses `--json` where supported and `--no-tui`; never uses `--ai`; requires explicit user confirmation before deleting a repository. If a requested repository operation has no direct command, fall back to the gitee-api skill to search the schema; API updates and deletions require a second confirmation.
 metadata:
   author: gitee
   version: "1.0"
@@ -9,10 +8,13 @@ metadata:
 
 管理 Gitee 仓库的完整生命周期：查看 / 列出 / 克隆 / 创建 / fork / 删除。
 
+需要先通过 `gitee auth login` 完成认证；克隆、创建、fork 和删除作用于当前账号或明确指定的 `owner/repo`。
+
 ## 前置检查
 
 1. **已认证**：`gitee auth status --no-tui`，失败则提示 `gitee auth login`。
 2. **删除是不可逆操作**：`repo delete` 执行前必须向用户明确确认，`-y` 只在用户确认后才加。
+3. 直接仓库命令不支持目标操作时，切换到 `gitee-api` skill，先 `gitee api --search` 查 schema；通过 API 更新或删除资源前必须二次确认。
 
 ---
 

@@ -156,8 +156,8 @@ func TestIssueAssignCmd(t *testing.T) {
 	out, err := runIssueCmd([]string{"assign", "IJEE3", "charlie", "-R", "owner/repo"}, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var p gitee.UpdateIssueParams
 		json.NewDecoder(r.Body).Decode(&p)
-		if p.Assignee != "charlie" {
-			t.Errorf("expected assignee=charlie, got %s", p.Assignee)
+		if p.Assignee == nil || *p.Assignee != "charlie" {
+			t.Errorf("expected assignee=charlie, got %v", p.Assignee)
 		}
 		json.NewEncoder(w).Encode(gitee.Issue{Number: "IJEE3"})
 	}))

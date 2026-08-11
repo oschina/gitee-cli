@@ -1,7 +1,6 @@
 ---
 name: gitee-search
-description: Search across all of Gitee for repositories, issues, and users with rich filters (language, owner, state, author, assignee, label, sort). Use when the user says "搜索仓库", "找一下 Go 的项目", "搜 issue", "查一下有没有相关 issue", "搜索用户", "search gitee for X", "find repos in <language>", or "search issues/users". This is GLOBAL discovery across Gitee; use gitee-issue to list or view issues in a specific repository. Always uses `--json` and `--no-tui`; read-only, never mutates; never uses `--ai`.
-compatibility: Requires gitee CLI authenticated via `gitee auth login`.
+description: Search across all of Gitee for repositories, issues, and users with rich filters (language, owner, state, author, assignee, label, sort). Use when the user says "搜索仓库", "找一下 Go 的项目", "搜 issue", "查一下有没有相关 issue", "搜索用户", "search gitee for X", "find repos in a language", or "search issues/users". This is GLOBAL discovery across Gitee; use gitee-issue to list or view issues in a specific repository. Always uses `--json` and `--no-tui`; read-only, never mutates; never uses `--ai`.
 metadata:
   author: gitee
   version: "1.0"

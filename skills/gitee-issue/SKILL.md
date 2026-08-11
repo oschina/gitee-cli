@@ -7,10 +7,10 @@ description: >-
   "评论 issue", "关闭 issue", "重新打开 issue", "把 issue 指派给 X",
   "认领 issue", "开始处理 issue", or
   "list/view/create/edit/comment/close/reopen/assign/start an issue". This
-  skill is self-contained and does not delegate issue workflows to other
-  skills. Always uses `--json` and `--no-tui`; never uses `--ai` (it blocks
-  on TUI).
-compatibility: Requires gitee CLI authenticated via `gitee auth login`, and a git repository with a Gitee remote (or pass `-R owner/repo`).
+  skill uses direct issue commands first and falls back to the gitee-api
+  skill when an operation is unsupported. Always uses `--json` and
+  `--no-tui`; never uses `--ai`. API updates and deletions require a second
+  explicit user confirmation.
 metadata:
   author: gitee
   version: "1.0"
@@ -18,11 +18,13 @@ metadata:
 
 Issue 的完整生命周期：列出 / 查看 / 创建 / 编辑 / 评论 / 关闭 / 重开 / 指派 / 认领并开始处理。
 
+需要先通过 `gitee auth login` 完成认证，并在带 Gitee remote 的 git 仓库中执行或传入 `-R owner/repo`。
+
 ## 前置检查
 
 1. **已认证**：`gitee auth status --no-tui`，失败则提示 `gitee auth login`。
 2. **Issue 编号是字母数字串**（如 `ICX4FO`），**不是整数**，别当成 `#42` 那样的 PR 编号。
-3. 所有 Issue 场景均由本 skill 直接处理，不依赖其他 skill。
+3. 优先使用直接 Issue 命令；不支持目标操作时切换到 `gitee-api` skill，先 `gitee api --search` 查 schema。通过 API 更新或删除资源前必须二次确认。
 
 ---
 
@@ -70,14 +72,16 @@ gitee issue view ICX4FO --json=number,title,state,assignee,labels --no-tui
 
 ### Step 3：编辑 issue（edit）
 
-非交互模式下 `--title` / `--body` / `--assignee` **至少提供一个**：
+非交互模式下至少提供一个编辑字段：
 
 ```bash
 gitee issue edit ICX4FO -t "新标题" -b "更新后的描述" --json --no-tui
 gitee issue edit ICX4FO -a bob --json --no-tui
+gitee issue edit ICX4FO --labels bug,urgent --milestone 12 --json --no-tui
+gitee issue edit ICX4FO --body "" --assignee "" --labels "" --json --no-tui
 ```
 
-**可用 flag：** `--title/-t`、`--body/-b`、`--assignee/-a`、`--json/-j`（**必须加**）、`--no-tui`（**必须加**）。
+**可用 flag：** `--title/-t`、`--body/-b`、`--assignee/-a`、`--labels`、`--milestone`、`--json/-j`（**必须加**）、`--no-tui`（**必须加**）。空正文、负责人或标签表示清空该字段。
 
 ### Step 4：评论 issue（comment）
 
@@ -169,7 +173,7 @@ gitee issue close ICX4FO --json --no-tui
 | 错误 | 原因 | 处理方式 |
 |------|------|---------|
 | `--title is required` | 创建时未传 `-t` | 补 `-t` 标题 |
-| `at least one of --title/--body/--assignee` | edit 未传任何字段 | 至少提供一个待改字段 |
+| `at least one of ... is required` | edit 未传任何字段 | 至少提供一个待改字段 |
 | create 返回的 `labels` / `assignee` 为空 | 即时响应尚未包含关联字段 | 用返回的 Issue 编号执行 `issue view --json --no-tui` 核验最终状态 |
 | 命令卡住无响应 | comment 未传 `-b`，进入编辑器 | 中断并用 `-b "..."` 重跑 |
 | `failed to ...: 404` | issue 编号错误 | issue 号是字母数字串（如 `ICX4FO`），用 `gitee issue list --json --no-tui` 核对 |

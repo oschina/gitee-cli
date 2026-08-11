@@ -1,25 +1,39 @@
 ---
 name: gitee-api
-description: Call any Gitee V5 REST API endpoint directly through the gitee CLI as an escape hatch for features that have no first-class command (milestones, labels, collaborators, webhooks, file contents, members, etc.). Discovers endpoints with `gitee api --search`, then issues the request. Use when the user says "调用 Gitee API", "调接口", "gitee api", "加个 label / 里程碑", "管理 webhook / 协作者", "查看仓库成员", "有没有对应的命令 / 没有现成命令怎么办", "manage milestones/labels/webhooks/collaborators", or "hit the raw Gitee API". Always uses `--no-tui`; never uses `--ai`; confirms with the user before any mutating request (POST/PUT/PATCH/DELETE).
-compatibility: Requires gitee CLI authenticated via `gitee auth login`, and (for repo-scoped endpoints) knowledge of the target `owner/repo`.
+description: Call any Gitee V5 REST API endpoint through the gitee CLI when no first-class command supports the requested operation. Discover the endpoint and schema with `gitee api --search`, then issue the request. Use when the user says "调用 Gitee API", "调接口", "gitee api", "没有现成命令怎么办", asks for milestones, labels, collaborators, webhooks, members, or requests an operation unsupported by a direct gitee command. Always uses `--no-tui`; never uses `--ai`; requires a second explicit user confirmation before resource updates (PUT/PATCH) and deletions (DELETE).
 metadata:
   author: gitee
   version: "1.0"
 ---
 
-`gitee api` 是访问 Gitee V5 REST API 的「万能逃生舱」。当某个功能没有对应的一级命令（如**里程碑 milestones、标签 labels、协作者 collaborators、Webhook、文件内容 contents、成员 members** 等）时，用它直接调用底层接口。
+`gitee api` 是一级命令不支持某项操作时的降级通道。优先使用 `gitee pr/issue/repo/release/...`；缺少对应能力时，再用 `--search` 查 OpenAPI schema 并调用底层接口。
+
+需要先通过 `gitee auth login` 完成认证；仓库级 endpoint 还需要明确目标 `owner/repo`。
 
 ## 前置检查
 
 1. **已认证**：`gitee auth status --no-tui`，失败则提示 `gitee auth login`。
-2. **先发现，再调用**：不要凭记忆猜测 endpoint 路径。**永远先用 `--search` 从 OpenAPI 规范中检索**准确的 endpoint、HTTP 方法和参数，再构造请求。
-3. **区分读写**：`GET` 为只读，可直接执行；`POST` / `PUT` / `PATCH` / `DELETE` 为写操作，**执行前必须向用户确认**。
+2. **先检查直接命令**：运行目标资源的 `--help` 或依据对应资源 skill 判断是否已有直接子命令；已有则使用直接命令，不绕到 API。
+3. **先发现，再调用**：直接命令不支持时，必须先用 `--search` 从 OpenAPI 规范中检索准确的 endpoint、HTTP 方法和参数，不凭记忆猜路径或 schema。
+4. **区分风险**：`GET` 可直接执行；创建操作必须来自用户明确请求；`PUT` / `PATCH` / `DELETE` 即使用户已经提出，也必须在执行前再次展示目标和完整请求并等待确认。
 
 ---
 
 ## 执行步骤
 
-### Step 1：发现 endpoint（`--search`）
+### Step 1：检查直接命令
+
+先确认一级命令是否支持目标操作，例如：
+
+```bash
+gitee pr --help --no-tui
+gitee issue edit --help --no-tui
+gitee release --help --no-tui
+```
+
+有对应能力时直接使用；没有时才进入 Step 2。
+
+### Step 2：发现 endpoint（`--search`）
 
 用关键词从 Gitee OpenAPI 规范中检索匹配的 endpoint，输出包含路径、方法和参数说明：
 
@@ -61,7 +75,7 @@ Found 5 matching endpoint(s):
 
 > 参数标注含义：`* ` 前缀 = **必填**；`path` = 拼进 URL 路径；`query` = 拼进 query string；`form` = 作为请求体字段（用 `-f key=value` 传）。
 
-### Step 2：发起请求
+### Step 3：解析 schema 并发起请求
 
 把 `--search` 得到的 endpoint 里的 `{owner}` / `{repo}` / `{number}` 等占位符替换为真实值后调用。
 
@@ -71,7 +85,7 @@ Found 5 matching endpoint(s):
 gitee api "/repos/oschina/gitee/milestones?state=open" -p --no-tui
 ```
 
-**写操作（POST/PUT/PATCH/DELETE，先确认，见下方判断逻辑）：**
+**写操作（更新和删除必须先二次确认，见下方协议）：**
 ```bash
 # 用 -f 逐个传 form 字段（可重复），-X 指定方法
 gitee api "/repos/oschina/gitee/milestones" -X POST \
@@ -106,13 +120,18 @@ gitee api "/repos/oschina/gitee/issues/ICX4FO/labels" -X POST \
 |---------|-----------|-----------|
 | "看看有哪些接口" / "有没有 X 的接口" | 仅 `--search` | 否 |
 | "查询 / 列出 / 获取 X" | `GET` | 否，直接执行 |
-| "创建 / 新增 X" | `POST` | **是** |
-| "修改 / 更新 X" | `PUT` / `PATCH` | **是** |
+| "创建 / 新增 X" | `POST` | 用户已明确要求且目标完整时可执行 |
+| "修改 / 更新 X" | `PUT` / `PATCH` | **是，必须二次确认** |
 | "删除 X" | `DELETE` | **是**（不可逆，强确认） |
 
-### 写操作确认协议（非只读请求执行前必须走一遍）
+### 更新和删除确认协议
 
-`gitee api` 绕过了一级命令内置的确认逻辑，因此**任何 `POST/PUT/PATCH/DELETE` 请求在执行前，必须先向用户展示将要发起的完整请求并等待明确确认**：
+`gitee api` 绕过一级命令的保护逻辑。执行 `PUT`、`PATCH` 或 `DELETE` 前：
+
+1. 尽可能先用对应 GET endpoint 读取目标资源，确认 ID、名称和当前状态。
+2. 展示方法、完整路径、请求体以及会改变或删除的资源。
+3. 等待用户再次明确确认；此前的“帮我更新/删除”请求不代替这次确认。
+4. 用户确认后执行；拒绝或没有答复时停止。
 
 ```
 即将发起写操作：
@@ -122,7 +141,7 @@ gitee api "/repos/oschina/gitee/issues/ICX4FO/labels" -X POST \
 确认执行吗？(y/n)
 ```
 
-用户确认后再执行对应命令。删除类操作尤其要强调「不可逆」。
+删除类操作必须明确标注「不可逆」。创建操作不需要机械地二次确认，但目标、权限范围或字段不明确时仍应先询问。
 
 ---
 
@@ -134,7 +153,7 @@ gitee api "/repos/oschina/gitee/issues/ICX4FO/labels" -X POST \
 gitee api --search "创建里程碑" --no-tui
 #    → POST /repos/{owner}/{repo}/milestones  (title*, due_on*)
 
-# 2. 向用户确认后创建
+# 2. 用户明确要求后创建
 gitee api "/repos/oschina/gitee/milestones" -X POST \
   -f title="2026 Q1" \
   -f due_on="2026-03-31T00:00:00+08:00" \

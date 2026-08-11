@@ -10,7 +10,7 @@ func NewPRCmd(f *cmdutil.Factory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "pr",
 		Short:   "Manage pull requests",
-		Long:    `Create, list, view, merge, close, reopen, review, comment, fetch, and checkout pull requests.`,
+		Long:    `Create, list, view, edit, merge, close, reopen, review, comment, fetch, and checkout pull requests.`,
 		Aliases: []string{"pull-request"},
 	}
 
@@ -19,6 +19,7 @@ func NewPRCmd(f *cmdutil.Factory) *cobra.Command {
 	cmd.AddCommand(newPRListCmd(f))
 	cmd.AddCommand(newPRViewCmd(f))
 	cmd.AddCommand(newPRCreateCmd(f))
+	cmd.AddCommand(newPREditCmd(f))
 	cmd.AddCommand(newPRCloseCmd(f))
 	cmd.AddCommand(newPRReopenCmd(f))
 	cmd.AddCommand(newPRMergeCmd(f))

@@ -99,6 +99,62 @@ func TestReleaseViewCmd_byTag(t *testing.T) {
 	}
 }
 
+func TestReleaseCreateCmd_resolvesDefaultBranch(t *testing.T) {
+	var requests []string
+	out, err := runReleaseCmd([]string{
+		"create", "-R", "owner/repo", "--tag", "v1.0.0", "--name", "Version 1",
+	}, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requests = append(requests, r.Method+" "+r.URL.Path)
+		switch {
+		case r.Method == http.MethodGet && r.URL.Path == "/repos/owner/repo":
+			json.NewEncoder(w).Encode(gitee.Repository{DefaultBranch: "main"})
+		case r.Method == http.MethodPost && r.URL.Path == "/repos/owner/repo/releases":
+			var params gitee.CreateReleaseParams
+			if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
+				t.Fatal(err)
+			}
+			if params.TargetCommitish != "main" {
+				t.Fatalf("target_commitish = %q, want main", params.TargetCommitish)
+			}
+			w.WriteHeader(http.StatusCreated)
+			json.NewEncoder(w).Encode(gitee.Release{ID: 1, TagName: params.TagName, Name: params.Name})
+		default:
+			t.Fatalf("unexpected request: %s %s", r.Method, r.URL.Path)
+		}
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := strings.Join(requests, ", "); got != "GET /repos/owner/repo, POST /repos/owner/repo/releases" {
+		t.Fatalf("requests = %q", got)
+	}
+	if !strings.Contains(out, "v1.0.0") {
+		t.Fatalf("unexpected output: %s", out)
+	}
+}
+
+func TestReleaseCreateCmd_usesExplicitTargetWithoutRepositoryLookup(t *testing.T) {
+	_, err := runReleaseCmd([]string{
+		"create", "-R", "owner/repo", "--tag", "v1.0.0", "--target", "develop",
+	}, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost || r.URL.Path != "/repos/owner/repo/releases" {
+			t.Fatalf("unexpected request: %s %s", r.Method, r.URL.Path)
+		}
+		var params gitee.CreateReleaseParams
+		if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
+			t.Fatal(err)
+		}
+		if params.TargetCommitish != "develop" {
+			t.Fatalf("target_commitish = %q, want develop", params.TargetCommitish)
+		}
+		w.WriteHeader(http.StatusCreated)
+		json.NewEncoder(w).Encode(gitee.Release{ID: 1, TagName: params.TagName, Name: params.Name})
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestReleaseDeleteCmd(t *testing.T) {
 	called := false
 	out, err := runReleaseCmd([]string{"delete", "4", "-R", "owner/repo", "--yes"}, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

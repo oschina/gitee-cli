@@ -3,7 +3,6 @@ package issue
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
@@ -123,14 +122,11 @@ func assigneeLogin(iss gitee.Issue) string {
 }
 
 func labelNames(iss gitee.Issue) string {
-	if len(iss.Labels) == 0 {
+	names := issueLabelNames(iss.Labels)
+	if names == "" {
 		return "-"
 	}
-	names := make([]string, 0, len(iss.Labels))
-	for _, l := range iss.Labels {
-		names = append(names, l.Name)
-	}
-	return strings.Join(names, ",")
+	return names
 }
 
 func issueListTUI(ctx context.Context, issues []gitee.Issue, owner, repo, hostname string, client *gitee.Client) error {
@@ -203,18 +199,15 @@ func issueListTUI(ctx context.Context, issues []gitee.Issue, owner, repo, hostna
 				if iss.Assignee != nil {
 					assignee = iss.Assignee.Login
 				}
-				if err := issueEditForm(&title, &body, &assignee); err != nil {
+				labels := issueLabelNames(iss.Labels)
+				if err := issueEditForm(&title, &body, &assignee, &labels); err != nil {
 					return err
 				}
-				params := &gitee.UpdateIssueParams{}
-				if title != "" {
-					params.Title = title
-				}
-				if body != "" {
-					params.Body = body
-				}
-				if assignee != "" {
-					params.Assignee = assignee
+				params := &gitee.UpdateIssueParams{
+					Title:    title,
+					Body:     &body,
+					Assignee: &assignee,
+					Labels:   &labels,
 				}
 				_, err = client.UpdateIssue(ctx, owner, repo, number, params)
 				return err

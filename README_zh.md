@@ -24,7 +24,7 @@ Pull Request · Issue · 仓库 · Release · AI 工作流 · Gitee API
 
 | 核心能力 |
 |---|
-| **日常工作流** · 管理 PR、Issue、仓库、Release、Gist、SSH Key，并直接调用 API。 |
+| **日常工作流** · 管理 PR、Issue、仓库、Release、SSH Key，并直接调用 API。 |
 | **终端交互** · 在交互式表格中浏览和操作数据，快捷键随场景动态展示。 |
 | **自动化** · 使用 JSON 输出、非交互参数、命令别名与 Shell 补全接入脚本和 CI。 |
 | **Agent 友好** · 通过结构化 JSON、显式的 `--repo` 与 `--hostname`、非交互参数及原始 `gitee api` 入口，方便 Agent 组合工具工作流。 |
@@ -155,11 +155,10 @@ gitee auth logout --hostname git.company.com
 |---|---|---|
 | `auth` | `login`, `logout`, `status`, `token` | 管理认证 |
 | `config` | `get`, `set`, `list` | 管理配置 |
-| `pr` | `list`, `view`, `create`, `close`, `reopen`, `merge`, `review`, `comment`, `diff`, `fetch`, `checkout` | 管理 Pull Request |
+| `pr` | `list`, `view`, `create`, `edit`, `close`, `reopen`, `merge`, `review`, `comment`, `diff`, `fetch`, `checkout` | 管理 Pull Request |
 | `issue` | `list`, `view`, `create`, `close`, `reopen`, `edit`, `assign`, `comment` | 管理 Issue |
 | `repo` | `list`, `view`, `clone`, `create`, `fork`, `delete` | 管理仓库 |
-| `release` | `list`, `view`, `create`, `delete` | 管理 Release |
-| `gist` | `list`, `view`, `create`, `delete` | 管理 Gist |
+| `release` | `list`, `view`, `create`, `edit`, `delete` | 管理 Release |
 | `ssh-key` | `list`, `add`, `delete` | 管理 SSH Key |
 | `search` | `repos`, `issues`, `users` | 在 Gitee 全站搜索 |
 | `skills` | `list`, `install`, `uninstall` | 离线管理内置 Agent Skills |
@@ -186,8 +185,8 @@ gitee api /repos/owner/repo/pulls --hostname gitee.com
 
 ## Agent Skills
 
-每个 Gitee CLI 版本都内置五个面向安全、非交互式 Gitee 工作流的 Agent Skills：
-`gitee-pr`、`gitee-issue`、`gitee-repo`、`gitee-search` 和 `gitee-api`。
+每个 Gitee CLI 版本都内置六个面向安全、非交互式 Gitee 工作流的 Agent Skills：
+`gitee-pr`、`gitee-issue`、`gitee-release`、`gitee-repo`、`gitee-search` 和 `gitee-api`。
 无需联网即可安装或更新：
 
 ```bash

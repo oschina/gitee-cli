@@ -27,7 +27,13 @@ var zhCN = map[string]string{
 	"pr.assignees_prompt":       "审查人员（逗号分隔，选填）:",
 	"pr.testers_prompt":         "测试人员（逗号分隔，选填）:",
 	"pr.confirm_create":         "确认创建 Pull Request？",
+	"pr.confirm_edit":           "保存修改？",
+	"pr.edit_title_prompt":      "标题:",
+	"pr.draft_status_prompt":    "草稿状态:",
+	"pr.draft_status_draft":     "草稿",
+	"pr.draft_status_ready":     "可以审查",
 	"pr.created":                "已创建 PR #%d：%s\n",
+	"pr.updated":                "已更新 PR #%d：%s\n",
 	"pr.closed":                 "已关闭 PR #%d\n",
 	"pr.reopened":               "已重新开启 PR #%d\n",
 	"pr.merged":                 "已合并 PR #%d\n",
@@ -77,10 +83,15 @@ var zhCN = map[string]string{
 	"repo.forked":         "已 Fork 到 %s：%s\n",
 	"repo.delete_confirm": "确认删除仓库 %s？此操作不可撤销。",
 
-	"release.no_results":     "未找到任何 Release",
-	"release.created":        "已创建 Release %s：%s\n",
-	"release.deleted":        "已删除 Release %s\n",
-	"release.delete_confirm": "确认删除 Release %s？",
+	"release.no_results":        "未找到任何 Release",
+	"release.created":           "已创建 Release %s：%s\n",
+	"release.updated":           "已更新 Release %s：%s\n",
+	"release.deleted":           "已删除 Release %s\n",
+	"release.confirm_edit":      "保存修改？",
+	"release.status_prompt":     "Release 状态:",
+	"release.status_prerelease": "预发布",
+	"release.status_stable":     "正式发布",
+	"release.delete_confirm":    "确认删除 Release %s？",
 
 	"sshkey.no_results":     "未找到任何 SSH 密钥",
 	"sshkey.added":          "已添加 SSH 密钥（ID：%d）\n",
@@ -119,7 +130,7 @@ var zhCN = map[string]string{
 	"form.pr.assignees_desc":   "逗号分隔的审查人员用户名（选填）",
 	"form.pr.testers":          "测试人员",
 	"form.pr.testers_desc":     "逗号分隔的测试人员用户名（选填）",
-	"form.pr.draft":            "创建为草稿？",
+	"form.pr.draft":            "设为草稿？",
 
 	// do
 	"do.usage_hint":          "请输入命令描述，例如: gitee do \"创建一个 PR\"",
@@ -141,8 +152,9 @@ var zhCN = map[string]string{
 	"ai.usage_hint": "请输入问题，例如: gitee ai \"什么是 Pull Request\"",
 
 	// form.release
-	"form.release.tag":       "标签",
-	"form.release.name":      "Release 名称",
-	"form.release.name_desc": "留空则默认为标签名",
-	"form.release.body":      "描述",
+	"form.release.tag":        "标签",
+	"form.release.name":       "Release 名称",
+	"form.release.name_desc":  "留空则默认为标签名",
+	"form.release.body":       "描述",
+	"form.release.prerelease": "设为预发布？",
 }

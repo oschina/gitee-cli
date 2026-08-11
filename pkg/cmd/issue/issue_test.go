@@ -144,6 +144,51 @@ func TestIssueEditCmd_nonInteractive(t *testing.T) {
 	}
 }
 
+func TestIssueEditCmd_supportsClearingAndAdditionalFields(t *testing.T) {
+	called := false
+	_, err := runIssueCmd([]string{
+		"edit", "ICX4FO", "-R", "owner/repo",
+		"--body", "",
+		"--assignee", "",
+		"--labels", "",
+		"--milestone", "12",
+	}, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPatch {
+			t.Fatalf("expected PATCH, got %s", r.Method)
+		}
+		called = true
+		var payload map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Fatal(err)
+		}
+		for _, field := range []string{"body", "assignee", "labels"} {
+			if value, ok := payload[field]; !ok || value != "" {
+				t.Errorf("expected explicit empty %s, got %#v", field, payload)
+			}
+		}
+		if payload["milestone"] != float64(12) {
+			t.Errorf("expected milestone=12, got %#v", payload["milestone"])
+		}
+		if _, ok := payload["title"]; ok {
+			t.Errorf("title should be omitted, got %#v", payload)
+		}
+		json.NewEncoder(w).Encode(gitee.Issue{Number: "ICX4FO", HTMLURL: "https://gitee.com/owner/repo/issues/ICX4FO"})
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !called {
+		t.Fatal("expected PATCH request")
+	}
+}
+
+func TestIssueEditCmd_rejectsInvalidMilestone(t *testing.T) {
+	_, err := runIssueCmd([]string{"edit", "ICX4FO", "-R", "owner/repo", "--milestone", "0"}, http.NotFoundHandler())
+	if err == nil || !strings.Contains(err.Error(), "greater than zero") {
+		t.Fatalf("expected milestone validation error, got %v", err)
+	}
+}
+
 func TestAssigneeLogin_noAssignee(t *testing.T) {
 	iss := gitee.Issue{}
 	got := assigneeLogin(iss)

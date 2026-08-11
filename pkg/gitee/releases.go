@@ -28,6 +28,13 @@ type CreateReleaseParams struct {
 	TargetCommitish string `json:"target_commitish,omitempty"`
 }
 
+type UpdateReleaseParams struct {
+	TagName    string `json:"tag_name"`
+	Name       string `json:"name"`
+	Body       string `json:"body"`
+	Prerelease bool   `json:"prerelease"`
+}
+
 func (c *Client) ListReleases(ctx context.Context, owner, repo string, page, perPage int) ([]Release, error) {
 	q := map[string]string{}
 	if page > 0 {
@@ -91,6 +98,15 @@ func (c *Client) GetLatestRelease(ctx context.Context, owner, repo string) (*Rel
 
 func (c *Client) CreateRelease(ctx context.Context, owner, repo string, params *CreateReleaseParams) (*Release, error) {
 	req, err := c.newRequest(ctx, http.MethodPost, fmt.Sprintf("/repos/%s/%s/releases", owner, repo), nil, params)
+	if err != nil {
+		return nil, err
+	}
+	var r Release
+	return &r, c.do(req, &r)
+}
+
+func (c *Client) UpdateRelease(ctx context.Context, owner, repo string, id int, params *UpdateReleaseParams) (*Release, error) {
+	req, err := c.newRequest(ctx, http.MethodPatch, fmt.Sprintf("/repos/%s/%s/releases/%d", owner, repo, id), nil, params)
 	if err != nil {
 		return nil, err
 	}

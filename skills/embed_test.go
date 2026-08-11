@@ -7,7 +7,7 @@ import (
 )
 
 func TestNames(t *testing.T) {
-	want := []string{"gitee-api", "gitee-issue", "gitee-pr", "gitee-repo", "gitee-search"}
+	want := []string{"gitee-api", "gitee-issue", "gitee-pr", "gitee-release", "gitee-repo", "gitee-search"}
 	got, err := Names()
 	if err != nil {
 		t.Fatal(err)

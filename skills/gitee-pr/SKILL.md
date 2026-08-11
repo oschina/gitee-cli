@@ -1,13 +1,14 @@
 ---
 name: gitee-pr
-description: Manage the full pull request lifecycle on Gitee — create, list, view, diff, review/approve, comment, merge, close, reopen, and fetch/checkout PRs locally. Use when the user says "创建 PR", "提个 PR", "看看 PR", "列出 PR", "PR 有哪些", "PR diff / 看改动", "review PR", "approve / 通过 PR", "评论 PR", "合并 PR / merge PR", "关闭 PR", "重开 PR", "把 PR 拉到本地", "checkout PR", "create/list/view/diff/review/merge/close/reopen/checkout a pull request". Always uses `--json` (where supported) and `--no-tui`; never uses `--ai` (it blocks on a TUI pager/confirm); requires explicit user confirmation before merging (visible, hard to undo).
-compatibility: Requires gitee CLI authenticated via `gitee auth login`, and a git repository with a Gitee remote (or pass `-R owner/repo`). checkout/fetch require a local git working copy.
+description: Manage the full pull request lifecycle on Gitee — create, list, view, edit, diff, review/approve, comment, merge, close, reopen, and fetch/checkout PRs locally. Use when the user says "创建 PR", "提个 PR", "看看 PR", "编辑 PR", "列出 PR", "PR diff / 看改动", "review PR", "评论 PR", "合并 PR", "关闭 PR", "重开 PR", "把 PR 拉到本地", or asks to create/list/view/edit/diff/review/merge/close/reopen/checkout a pull request. Always uses `--json` where supported and `--no-tui`; never uses `--ai`; requires explicit user confirmation before merging. If a requested PR operation has no direct command, fall back to the gitee-api skill to search the schema; API updates and deletions require a second confirmation.
 metadata:
   author: gitee
   version: "1.0"
 ---
 
-Pull Request 的**完整生命周期**：创建 / 列出 / 查看 / 看 diff / 审查 / 评论 / 合并 / 关闭 / 重开 / 拉到本地。
+Pull Request 的**完整生命周期**：创建 / 列出 / 查看 / 编辑 / 看 diff / 审查 / 评论 / 合并 / 关闭 / 重开 / 拉到本地。
+
+需要先通过 `gitee auth login` 完成认证，并在带 Gitee remote 的 git 仓库中执行或传入 `-R owner/repo`；`checkout/fetch` 必须有本地工作副本。
 
 > PR 编号是**整数**（如 `42`），区别于 issue 编号（字母数字串如 `ICX4FO`）。
 
@@ -17,6 +18,7 @@ Pull Request 的**完整生命周期**：创建 / 列出 / 查看 / 看 diff / �
 2. **创建/checkout 需在 git 仓库内**（或用 `-R owner/repo` 指定远端仓库）。
 3. **合并是可见且难以撤销的操作**：`pr merge` 执行前必须向用户明确确认。
 4. **禁止 `--ai`**：`pr create --ai` 与 `pr review --ai` 都会触发交互式确认 / TUI pager 而阻塞；标题、正文、review 结论均由 Agent 自行组织后用 `-t/-b` 传入。
+5. 直接命令不支持用户要求的 PR 操作时，切换到 `gitee-api` skill，先 `gitee api --search` 查 schema；通过 API 更新或删除资源前必须二次确认。
 
 ---
 
@@ -84,6 +86,16 @@ gitee pr view 42 --json=number,title,state,head.ref,base.ref --no-tui
 ```
 
 **可用 flag：** `--json/-j`（**必须加**，可选字段 `number,title,body,state,draft,mergeable,head,base,user,assignees,testers,html_url,created_at,merged_at` 等）、`--no-tui`（**必须加**）。
+
+### 编辑 PR（edit）
+
+```bash
+gitee pr edit 42 -t "新标题" -b "更新后的描述" --json --no-tui
+gitee pr edit 42 --body "" --json --no-tui
+gitee pr edit 42 --draft=false --json --no-tui
+```
+
+**可用 flag：** `--title/-t`、`--body/-b`、`--draft`、`--json/-j`（**必须加**）、`--no-tui`（**必须加**）。非交互模式至少提供一个编辑字段。
 
 ### Step 4：查看 diff（diff）
 
@@ -194,6 +206,7 @@ gitee pr checkout 42 --force --no-tui         # 已存在同名分支时重新�
 | "提个 PR" / "创建 PR" | Step 1 create（记得 `-t`；先自行生成标题/正文，勿用 `--ai`） | 否 |
 | "有哪些 PR" / "列出 PR" | Step 2 list | 否 |
 | "看看这个 PR" | Step 3 view | 否 |
+| "编辑 PR 标题/描述/草稿状态" | `pr edit` | 否 |
 | "看 PR 改了啥 / diff" | Step 4 diff | 否 |
 | "review / approve / 通过" | Step 5 review（先展示 PR 信息，approve 前建议确认） | 建议确认 |
 | "留个评论 / 提意见" | Step 6 comment（记得 `-b`） | 否 |
