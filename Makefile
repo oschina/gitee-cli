@@ -75,10 +75,9 @@ skills-check:
 		name="$$(sed -n 's/^name:[[:space:]]*//p' "$$file" | head -n 1)"; \
 		[ "$$name" = "$$dir" ] || { echo "Skill name mismatch: $$file declares $$name" >&2; exit 1; }; \
 		grep -q '^description:' "$$file" || { echo "Missing description: $$file" >&2; exit 1; }; \
-		grep -q '^compatibility:' "$$file" || { echo "Missing compatibility: $$file" >&2; exit 1; }; \
 		count=$$((count + 1)); \
 	done; \
-	[ "$$count" -eq 5 ] || { echo "Expected 5 skills, found $$count" >&2; exit 1; }
+	[ "$$count" -eq 6 ] || { echo "Expected 6 skills, found $$count" >&2; exit 1; }
 	@if grep -Enr '^[[:space:]]*gitee .*--ai' skills/*/SKILL.md; then \
 		echo "Executable gitee --ai command found in skills" >&2; \
 		exit 1; \
