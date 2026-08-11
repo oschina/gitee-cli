@@ -18,7 +18,7 @@ func newLogoutCmd(f *cmdutil.Factory) *cobra.Command {
 		Short: "Log out of Gitee",
 		Long: `Remove stored credentials for the current or specified host.
 
-By default logs out of gitee.com. Use --hostname to log out of a
+By default logs out of the configured host. Use --hostname to log out of a
 specific private instance:
   gitee auth logout --hostname git.company.com`,
 		Example: `  gitee auth logout
@@ -33,6 +33,11 @@ specific private instance:
 				if err := config.DeleteHostConfig(hostname); err != nil {
 					return fmt.Errorf("failed to remove credentials for %s: %w", hostname, err)
 				}
+				if config.Get(config.KeyHost) == hostname {
+					if err := config.Set(config.KeyHost, config.DefaultHost); err != nil {
+						return fmt.Errorf("failed to reset default host: %w", err)
+					}
+				}
 				fmt.Fprint(f.IOStreams.Out, i18n.Tf("auth.logged_out", hostname))
 				return nil
 			}
@@ -45,6 +50,6 @@ specific private instance:
 		},
 	}
 
-	cmd.Flags().StringVar(&hostname, "hostname", "", "Hostname to log out of (default: gitee.com)")
+	cmd.Flags().StringVar(&hostname, "hostname", "", "Hostname to log out of (default: configured host)")
 	return cmd
 }

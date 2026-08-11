@@ -40,6 +40,23 @@ func ListHosts() []string {
 	return hosts
 }
 
+// DefaultHostname returns the configured host, falling back to the only saved
+// private host when gitee.com has no credentials.
+func DefaultHostname() string {
+	hostname := Get(KeyHost)
+	if hostname != "" && hostname != DefaultHost {
+		return hostname
+	}
+	if _, err := Token(); err == nil {
+		return DefaultHost
+	}
+	hosts := ListHosts()
+	if len(hosts) == 1 {
+		return hosts[0]
+	}
+	return DefaultHost
+}
+
 func GetHostConfig(hostname string) (HostConfig, bool) {
 	v := hostsViper()
 	if !v.IsSet(hostname) {

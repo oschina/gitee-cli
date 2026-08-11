@@ -41,7 +41,7 @@ gitee api /user --hostname git.company.com
 
 | Flag | Scope | Description |
 |---|---|---|
-| `--hostname <host>` | all commands | Select a Gitee host; defaults to `gitee.com`. |
+| `--hostname <host>` | all commands | Select a Gitee host; defaults to the configured or only authenticated host. |
 | `-R, --repo <owner/repo>` | PR and issue commands | Override repository inference from the git remote. |
 | `-j, --json` | supported list and view commands | Emit structured JSON. |
 | `--no-tui` | all commands | Disable interactive TUI mode for one command. |

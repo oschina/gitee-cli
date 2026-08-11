@@ -53,6 +53,51 @@ func TestListHosts(t *testing.T) {
 	}
 }
 
+func TestDefaultHostname_usesOnlyPrivateHostWithoutDefaultCredentials(t *testing.T) {
+	t.Setenv("GITEE_CONFIG_DIR", t.TempDir())
+	t.Setenv("GITEE_TOKEN", "")
+	if err := Load(); err != nil {
+		t.Fatal(err)
+	}
+	if err := SaveHostConfig("git.example.com", "private-token", ""); err != nil {
+		t.Fatal(err)
+	}
+
+	if got := DefaultHostname(); got != "git.example.com" {
+		t.Fatalf("expected only private host, got %q", got)
+	}
+}
+
+func TestDefaultHostname_prefersDefaultHostWithCredentials(t *testing.T) {
+	t.Setenv("GITEE_CONFIG_DIR", t.TempDir())
+	t.Setenv("GITEE_TOKEN", "default-token")
+	if err := Load(); err != nil {
+		t.Fatal(err)
+	}
+	if err := SaveHostConfig("git.example.com", "private-token", ""); err != nil {
+		t.Fatal(err)
+	}
+
+	if got := DefaultHostname(); got != DefaultHost {
+		t.Fatalf("expected %q, got %q", DefaultHost, got)
+	}
+}
+
+func TestDefaultHostname_prefersConfiguredPrivateHost(t *testing.T) {
+	t.Setenv("GITEE_CONFIG_DIR", t.TempDir())
+	t.Setenv("GITEE_TOKEN", "default-token")
+	if err := Load(); err != nil {
+		t.Fatal(err)
+	}
+	if err := Set(KeyHost, "git.example.com"); err != nil {
+		t.Fatal(err)
+	}
+
+	if got := DefaultHostname(); got != "git.example.com" {
+		t.Fatalf("expected configured private host, got %q", got)
+	}
+}
+
 func TestDeleteHostConfig(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("GITEE_CONFIG_DIR", dir)

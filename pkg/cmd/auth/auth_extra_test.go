@@ -96,6 +96,65 @@ func TestAuthLoginCmd_withTokenFromStdin(t *testing.T) {
 	}
 }
 
+func TestAuthLoginCmd_setsCustomHostAsDefault(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("GITEE_CONFIG_DIR", dir)
+	if err := config.Load(); err != nil {
+		t.Fatal(err)
+	}
+
+	user := gitee.User{Login: "agent", Name: "Automation Agent"}
+	tf := cmdtest.NewTestFactory(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		json.NewEncoder(w).Encode(user)
+	}))
+	defer tf.Close()
+	tf.IOStreams.In = io.NopCloser(strings.NewReader("private-token\n"))
+
+	const hostname = "git.example.com"
+	if err := config.SaveHostConfig(hostname, "old-token", tf.Server.URL); err != nil {
+		t.Fatal(err)
+	}
+
+	root := NewAuthCmd(tf.Factory)
+	root.SetArgs([]string{"login", "--hostname", hostname, "--with-token"})
+	if err := root.Execute(); err != nil {
+		t.Fatal(err)
+	}
+	if got := config.Get(config.KeyHost); got != hostname {
+		t.Fatalf("expected default host %q, got %q", hostname, got)
+	}
+	hc, ok := config.GetHostConfig(hostname)
+	if !ok || hc.Token != "private-token" {
+		t.Fatalf("expected updated private host credentials, got %#v", hc)
+	}
+}
+
+func TestAuthLogoutCmd_resetsCustomDefaultHost(t *testing.T) {
+	t.Setenv("GITEE_CONFIG_DIR", t.TempDir())
+	if err := config.Load(); err != nil {
+		t.Fatal(err)
+	}
+	const hostname = "git.example.com"
+	if err := config.SaveHostConfig(hostname, "token", ""); err != nil {
+		t.Fatal(err)
+	}
+	if err := config.Set(config.KeyHost, hostname); err != nil {
+		t.Fatal(err)
+	}
+
+	tf := cmdtest.NewTestFactory(http.NotFoundHandler())
+	defer tf.Close()
+	tf.Factory.Hostname = hostname
+	root := NewAuthCmd(tf.Factory)
+	root.SetArgs([]string{"logout"})
+	if err := root.Execute(); err != nil {
+		t.Fatal(err)
+	}
+	if got := config.Get(config.KeyHost); got != config.DefaultHost {
+		t.Fatalf("expected default host reset to %q, got %q", config.DefaultHost, got)
+	}
+}
+
 func TestAuthLoginCmd_rejectsTokenFlag(t *testing.T) {
 	tf := cmdtest.NewTestFactory(http.NotFoundHandler())
 	defer tf.Close()

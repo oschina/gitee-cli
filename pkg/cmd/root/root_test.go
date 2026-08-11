@@ -37,6 +37,40 @@ func newTestFactory() *cmdutil.Factory {
 	}
 }
 
+func TestDefaultHostnameFromConfig(t *testing.T) {
+	resetConfig(t)
+	if err := config.Set(config.KeyHost, "git.example.com"); err != nil {
+		t.Fatal(err)
+	}
+
+	f := newTestFactory()
+	rootCmd := NewRootCmd(context.Background(), f)
+	rootCmd.SetArgs([]string{"version"})
+	if err := rootCmd.Execute(); err != nil {
+		t.Fatal(err)
+	}
+	if f.Hostname != "git.example.com" {
+		t.Fatalf("expected configured host, got %q", f.Hostname)
+	}
+}
+
+func TestHostnameFlagOverridesConfig(t *testing.T) {
+	resetConfig(t)
+	if err := config.Set(config.KeyHost, "git.example.com"); err != nil {
+		t.Fatal(err)
+	}
+
+	f := newTestFactory()
+	rootCmd := NewRootCmd(context.Background(), f)
+	rootCmd.SetArgs([]string{"version", "--hostname", "other.example.com"})
+	if err := rootCmd.Execute(); err != nil {
+		t.Fatal(err)
+	}
+	if f.Hostname != "other.example.com" {
+		t.Fatalf("expected flag host, got %q", f.Hostname)
+	}
+}
+
 func setAlias(t *testing.T, name, expansion string) {
 	t.Helper()
 	if err := config.Set("alias."+name, expansion); err != nil {

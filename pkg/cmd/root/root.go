@@ -56,6 +56,8 @@ func NewRootCmd(ctx context.Context, f *cmdutil.Factory) *cobra.Command {
 			}
 			if hostname != "" {
 				f.Hostname = hostname
+			} else if f.Hostname == "" {
+				f.Hostname = config.DefaultHostname()
 			}
 			if quiet {
 				f.IOStreams.SetQuiet()
@@ -69,7 +71,7 @@ func NewRootCmd(ctx context.Context, f *cmdutil.Factory) *cobra.Command {
 	}
 
 	cmd.PersistentFlags().BoolVar(&noTUI, "no-tui", false, "Disable TUI mode")
-	cmd.PersistentFlags().StringVar(&hostname, "hostname", "", "Gitee hostname (default: gitee.com)")
+	cmd.PersistentFlags().StringVar(&hostname, "hostname", "", "Gitee hostname (default: configured host)")
 	cmd.PersistentFlags().BoolVarP(&quiet, "quiet", "q", false, "Suppress all output except errors")
 	cmd.PersistentFlags().BoolVarP(&verbose, "verbose", "V", false, "Enable verbose debug output")
 

@@ -81,21 +81,23 @@ Multi-host: log in to private Gitee instances with --hostname:
 					return fmt.Errorf("failed to save token: %w", err)
 				}
 			}
+			activeHost := hostname
+			if activeHost == "" {
+				activeHost = config.DefaultHost
+			}
+			if err := config.Set(config.KeyHost, activeHost); err != nil {
+				return fmt.Errorf("failed to set default host: %w", err)
+			}
 
 			fmt.Fprint(f.IOStreams.Out, i18n.Tf("auth.logged_in",
-				func() string {
-					if hostname == "" {
-						return config.DefaultHost
-					}
-					return hostname
-				}(),
+				activeHost,
 				user.Login, user.Name))
 			return nil
 		},
 	}
 
 	cmd.Flags().BoolVar(&tokenFromStdin, "with-token", false, "Read the personal access token from standard input")
-	cmd.Flags().StringVar(&hostname, "hostname", "", "Gitee hostname (default: gitee.com)")
+	cmd.Flags().StringVar(&hostname, "hostname", "", "Gitee hostname (default: configured host)")
 	return cmd
 }
 

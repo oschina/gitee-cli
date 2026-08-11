@@ -38,6 +38,6 @@ piping to files or shell history, especially in shared environments.`,
 		},
 	}
 
-	cmd.Flags().StringVar(&hostname, "hostname", "", "Hostname to get token for (default: gitee.com)")
+	cmd.Flags().StringVar(&hostname, "hostname", "", "Hostname to get token for (default: configured host)")
 	return cmd
 }

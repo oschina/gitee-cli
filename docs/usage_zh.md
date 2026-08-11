@@ -39,7 +39,7 @@ gitee api /user --hostname git.company.com
 
 | 参数 | 范围 | 说明 |
 |---|---|---|
-| `--hostname <host>` | 所有命令 | 选择 Gitee Host，默认为 `gitee.com`。 |
+| `--hostname <host>` | 所有命令 | 选择 Gitee Host，默认使用已配置或唯一已认证的 Host。 |
 | `-R, --repo <owner/repo>` | PR 与 Issue 命令 | 覆盖从 git remote 推断的仓库。 |
 | `-j, --json` | 支持的列表和查看命令 | 输出结构化 JSON。 |
 | `--no-tui` | 所有命令 | 单次禁用交互式 TUI。 |

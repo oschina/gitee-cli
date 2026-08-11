@@ -136,16 +136,18 @@ printf '%s' "$GITEE_TOKEN" | gitee auth login --with-token
 
 ### 多 Host（私有部署）
 
-同时登录多个 Gitee 实例：
+私有化实例只需登录一次。登录成功后，该 Host 会成为默认 Host，后续命令无需重复指定
+`--hostname`：
 
 ```bash
 gitee auth login --hostname git.company.com
-gitee pr list --hostname git.company.com -R owner/repo
+gitee pr list -R owner/repo
 gitee auth status
-gitee auth logout --hostname git.company.com
+gitee auth logout
 ```
 
-非默认 Host 的 Token 保存在 `~/.config/gitee/hosts.yml`。
+需要临时访问其他已配置实例时，可显式指定 `--hostname`。私有化 Host 的 Token 保存在
+`~/.config/gitee/hosts.yml`。
 
 ---
 

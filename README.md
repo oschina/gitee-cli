@@ -137,16 +137,18 @@ printf '%s' "$GITEE_TOKEN" | gitee auth login --with-token
 
 ### Multi-Host (Private Deployments)
 
-Log in to multiple Gitee instances simultaneously:
+Log in to a private Gitee instance once. A successful login makes it the
+default host, so subsequent commands do not need `--hostname`:
 
 ```bash
 gitee auth login --hostname git.company.com
-gitee pr list --hostname git.company.com -R owner/repo
+gitee pr list -R owner/repo
 gitee auth status
-gitee auth logout --hostname git.company.com
+gitee auth logout
 ```
 
-Tokens for non-default hosts are stored in `~/.config/gitee/hosts.yml`.
+Use `--hostname` to explicitly target another configured instance. Tokens for
+private hosts are stored in `~/.config/gitee/hosts.yml`.
 
 ---
 
