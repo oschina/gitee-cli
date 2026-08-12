@@ -139,6 +139,8 @@ printf '%s' "$GITEE_TOKEN" | gitee auth login --with-token
 私有化实例只需登录一次。登录成功后，该 Host 会成为默认 Host，后续命令无需重复指定
 `--hostname`：
 
+> 说明：由于私有化部署环境可能存在差异，`gitee auth login` 提供的 Access Token 创建地址可能无法正常访问。遇到这种情况时，请在对应实例中手动创建 Personal Access Token（PAT），并选择“直接粘贴令牌”完成认证。
+
 ```bash
 gitee auth login --hostname git.company.com
 gitee pr list -R owner/repo

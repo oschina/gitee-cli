@@ -140,6 +140,8 @@ printf '%s' "$GITEE_TOKEN" | gitee auth login --with-token
 Log in to a private Gitee instance once. A successful login makes it the
 default host, so subsequent commands do not need `--hostname`:
 
+> Note: Private deployment environments may vary, and the Access Token creation URL provided by `gitee auth login` may not be accessible. If this happens, manually create a Personal Access Token (PAT) in the corresponding instance, then select "Paste token directly" to complete authentication.
+
 ```bash
 gitee auth login --hostname git.company.com
 gitee pr list -R owner/repo
