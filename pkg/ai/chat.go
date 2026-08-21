@@ -12,6 +12,8 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	surveyterm "github.com/AlecAivazis/survey/v2/terminal"
 	"golang.org/x/term"
+
+	"gitee.com/oschina/gitee-cli/internal/i18n"
 )
 
 const chatPrompt = "👤 User : "
@@ -37,7 +39,7 @@ func readInteractiveChatLine(in, out *os.File, ask surveyAskOne) (string, bool, 
 }
 
 func Chat(ctx context.Context, client *Client, in io.Reader, out io.Writer) {
-	fmt.Fprintf(out, "\n%s\n\n", "🤖 Gitee CLI AI : 你好，我是 Gitee CLI AI 小助手，欢迎向我提问（输入 exit 退出）")
+	fmt.Fprintf(out, "\n🤖 Gitee CLI AI : %s\n\n", i18n.T("ai.chat_welcome"))
 
 	var history []Message
 	scanner := bufio.NewScanner(in)
@@ -51,7 +53,7 @@ func Chat(ctx context.Context, client *Client, in io.Reader, out io.Writer) {
 		if interactive {
 			line, eof, err := readInteractiveChatLine(inFile, outFile, survey.AskOne)
 			if err != nil || eof {
-				fmt.Fprintf(out, "\n👋 Bye\n")
+				fmt.Fprintf(out, "\n👋 %s\n", i18n.T("ai.chat_exit"))
 				return
 			}
 			input = line
@@ -60,7 +62,7 @@ func Chat(ctx context.Context, client *Client, in io.Reader, out io.Writer) {
 			if scanner.Scan() {
 				input = scanner.Text()
 			} else {
-				fmt.Fprintf(out, "\n👋 Bye\n")
+				fmt.Fprintf(out, "\n👋 %s\n", i18n.T("ai.chat_exit"))
 				return
 			}
 		}
@@ -70,7 +72,7 @@ func Chat(ctx context.Context, client *Client, in io.Reader, out io.Writer) {
 			continue
 		}
 		if strings.EqualFold(input, "exit") {
-			fmt.Fprintf(out, "\n🤖 Gitee CLI AI : 👋 Bye, See you next time！\n\n")
+			fmt.Fprintf(out, "\n🤖 Gitee CLI AI : 👋 %s\n\n", i18n.T("ai.chat_bye"))
 			return
 		}
 
@@ -83,7 +85,7 @@ func Chat(ctx context.Context, client *Client, in io.Reader, out io.Writer) {
 		fmt.Fprintf(out, "\n\n")
 
 		if err != nil {
-			fmt.Fprintf(out, "❌ 请求失败: %v\n\n", err)
+			fmt.Fprintf(out, "❌ %s\n\n", i18n.Tf("ai.chat_error", err))
 			history = history[:len(history)-1]
 			continue
 		}
