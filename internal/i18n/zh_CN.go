@@ -153,7 +153,7 @@ var zhCN = map[string]string{
 	"ai.chat_welcome":  "你好，我是 Gitee CLI AI 小助手，欢迎向我提问（输入 exit 退出）",
 	"ai.chat_bye":      "再见，下次见！",
 	"ai.chat_error":    "请求失败: %v",
-	"ai.chat_exit":     "Bye",
+	"ai.chat_exit":     "再见",
 
 	// form.release
 	"form.release.tag":        "标签",
