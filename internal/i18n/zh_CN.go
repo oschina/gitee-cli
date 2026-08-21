@@ -149,7 +149,11 @@ var zhCN = map[string]string{
 	"do.edit_prompt":         "  📝 编辑命令: ",
 
 	// ai
-	"ai.usage_hint": "请输入问题，例如: gitee ai \"什么是 Pull Request\"",
+	"ai.usage_hint":    "请输入问题，例如: gitee ai \"什么是 Pull Request\"",
+	"ai.chat_welcome":  "你好，我是 Gitee CLI AI 小助手，欢迎向我提问（输入 exit 退出）",
+	"ai.chat_bye":      "Bye, See you next time！",
+	"ai.chat_error":    "请求失败: %v",
+	"ai.chat_exit":     "Bye",
 
 	// form.release
 	"form.release.tag":        "标签",
