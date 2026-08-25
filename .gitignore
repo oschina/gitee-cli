@@ -32,3 +32,4 @@ PRD.md
 
 # Homebrew install test residue (unexpanded template vars)
 /{{*}}/
+.gitee-go

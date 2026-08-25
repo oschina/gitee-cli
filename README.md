@@ -171,6 +171,7 @@ private hosts are stored in `~/.config/gitee/hosts.yml`.
 | `alias` | `list`, `set`, `delete` | Manage command aliases |
 | `ai` | `[prompt]`, `--chat` | Chat with an OpenAI-compatible model |
 | `api` | `<endpoint>` | Make raw API requests |
+| `pipeline` | `list`, `view`, `run`, `build`, `commit`, `plugin`, `request`, `program` | Manage gitee-go pipelines (repo GitOps + program/enterprise) |
 | `version` | — | Show version information |
 | `completion` | `bash`, `zsh`, `fish`, `powershell` | Generate shell completion scripts |
 
@@ -215,6 +216,7 @@ The README stays focused on getting started. Detailed usage lives in one linkabl
 | [Pull request branches](docs/usage.md#pull-request-branches) | Choosing between `pr checkout` and `pr fetch` |
 | [AI workflows](docs/usage.md#ai-workflows) | Provider setup, PR and Issue assistance, chat, and commit messages |
 | [Raw API requests](docs/usage.md#raw-api-requests) | Calling Gitee V5 endpoints directly |
+| [Gitee Go pipelines](docs/usage.md#gitee-go-pipelines) | Program pipeline wizard, job data contract, quota handling |
 | [Configuration](docs/usage.md#configuration) | Files, keys, themes, locale, editor, and credentials |
 | [Reliability and debugging](docs/usage.md#reliability-and-debugging) | Retries, cancellation, rate limits, and verbose diagnostics |
 

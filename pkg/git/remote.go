@@ -157,3 +157,16 @@ func LogBranch(base, head string) (string, error) {
 	}
 	return strings.TrimSpace(string(out)), nil
 }
+
+// RepoRoot returns the absolute path of the current git repository root.
+func RepoRoot() (string, error) {
+	out, err := exec.Command("git", "rev-parse", "--show-toplevel").Output()
+	if err != nil {
+		return "", fmt.Errorf("not a git repo: %w", err)
+	}
+	root := strings.TrimSpace(string(out))
+	if root == "" {
+		return "", fmt.Errorf("could not determine repo root")
+	}
+	return root, nil
+}

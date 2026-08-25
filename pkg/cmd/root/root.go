@@ -24,6 +24,7 @@ import (
 	"gitee.com/oschina/gitee-cli/pkg/cmd/completion"
 	cmdconfig "gitee.com/oschina/gitee-cli/pkg/cmd/config"
 	"gitee.com/oschina/gitee-cli/pkg/cmd/issue"
+	cmdpipe "gitee.com/oschina/gitee-cli/pkg/cmd/pipeline"
 	"gitee.com/oschina/gitee-cli/pkg/cmd/pr"
 	"gitee.com/oschina/gitee-cli/pkg/cmd/release"
 	"gitee.com/oschina/gitee-cli/pkg/cmd/repo"
@@ -85,6 +86,7 @@ func NewRootCmd(ctx context.Context, f *cmdutil.Factory) *cobra.Command {
 	cmd.AddCommand(issue.NewIssueCmd(f))
 	cmd.AddCommand(pr.NewPRCmd(f))
 	cmd.AddCommand(repo.NewRepoCmd(f))
+	cmd.AddCommand(cmdpipe.NewPipelineCmd(f))
 	cmd.AddCommand(release.NewReleaseCmd(f))
 	cmd.AddCommand(sshkey.NewSSHKeyCmd(f))
 	cmd.AddCommand(search.NewSearchCmd(f))

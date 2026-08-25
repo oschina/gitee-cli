@@ -19,6 +19,7 @@ const (
 	KeyPager         = "pager"
 	KeyAPIPrefix     = "api_prefix"
 	KeyAPISwaggerURL = "api_swagger_url"
+	KeyGoAPIHost     = "go_api_host"
 	KeyTUI           = "tui"
 	KeyColorize      = "colorize"
 	KeyAIBaseURL     = "ai.base_url"
@@ -32,9 +33,18 @@ const (
 
 	DefaultHost      = "gitee.com"
 	DefaultAPIPrefix = "https://gitee.com/api/v5"
-	DefaultAIModel   = "gpt-4o-mini"
-	DefaultTheme     = "default"
-	RedactedValue    = "<redacted>"
+
+	// DefaultGoAPIHost is the Go API host for the public gitee.com host.
+	DefaultGoAPIHost = "go-api.gitee.com"
+	// LocalGoAPIHost is the Go API host for *.runjs.cn Gitee hosts (local dev).
+	LocalGoAPIHost = "local-pipe-api.runjs.cn"
+	// GoAPIBasePath is the gitee-go gateway path segment fixed across all
+	// gitee-go services; the service (e.g. ipipe, sa) and its versioned path
+	// follow it per call.
+	GoAPIBasePath = "/gitee-go"
+	DefaultAIModel  = "gpt-4o-mini"
+	DefaultTheme    = "default"
+	RedactedValue   = "<redacted>"
 )
 
 type credentialFile struct {
