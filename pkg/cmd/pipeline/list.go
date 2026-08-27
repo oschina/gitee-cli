@@ -53,15 +53,21 @@ func newPipelineListCmd(f *cmdutil.Factory) *cobra.Command {
 				fmt.Fprintln(f.IOStreams.Out, i18n.Tf("pipeline.no_pipeline_files", ref))
 				return nil
 			}
-			rows := [][]string{{"FILE", "NAME", "NOTE"}}
+			rows := [][]string{{"FILE", "NAME"}}
+			var errs []string
 			for _, p := range pipes {
-				note := ""
+				rows = append(rows, []string{p.FileName, p.Name})
 				if p.Message != "" {
-					note = "parse error: " + p.Message
+					errs = append(errs, fmt.Sprintf("%s: parse error: %s", p.FileName, oneLine(p.Message)))
 				}
-				rows = append(rows, []string{p.FileName, p.Name, note})
 			}
-			return cmdutil.WriteTable(f.IOStreams.Out, rows)
+			if err := cmdutil.WriteTableBordered(f.IOStreams.Out, rows); err != nil {
+				return err
+			}
+			for _, e := range errs {
+				fmt.Fprintln(f.IOStreams.Out, e)
+			}
+			return nil
 		},
 	}
 

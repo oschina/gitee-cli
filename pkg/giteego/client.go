@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
@@ -118,9 +119,11 @@ func (c *Client) FetchAbsoluteURL(ctx context.Context, urlStr string) ([]byte, e
 		if err := req.Context().Err(); err != nil {
 			return nil, err
 		}
+		slog.Debug("giteego HTTP request", "method", req.Method, "url", req.URL.String(), "attempt", attempt+1)
 		resp, err := c.httpClient.Do(req)
 		if err != nil {
 			lastErr = err
+			slog.Debug("giteego HTTP request failed", "error", err, "attempt", attempt+1)
 			time.Sleep(100 * time.Duration(attempt+1) * time.Millisecond)
 			continue
 		}
@@ -128,6 +131,7 @@ func (c *Client) FetchAbsoluteURL(ctx context.Context, urlStr string) ([]byte, e
 		resp.Body.Close()
 		if resp.StatusCode < 200 || resp.StatusCode > 299 {
 			lastErr = parseAPIError(resp.StatusCode, body)
+			slog.Debug("giteego HTTP response", "status", resp.StatusCode, "url", req.URL.String(), "attempt", attempt+1, "error", lastErr)
 			if isRetryableStatus(resp.StatusCode) && attempt < c.retries {
 				time.Sleep(100 * time.Duration(attempt+1) * time.Millisecond)
 				continue
@@ -146,14 +150,18 @@ func (c *Client) do(req *http.Request, out interface{}) error {
 		if err := req.Context().Err(); err != nil {
 			return err
 		}
+		slog.Debug("giteego HTTP request", "method", req.Method, "url", req.URL.String(), "attempt", attempt+1)
 		resp, err := c.httpClient.Do(req)
 		if err != nil {
 			lastErr = err
+			slog.Debug("giteego HTTP request failed", "error", err, "attempt", attempt+1)
 			time.Sleep(100 * time.Duration(attempt+1) * time.Millisecond)
 			continue
 		}
 		body, _ := io.ReadAll(resp.Body)
 		resp.Body.Close()
+
+		slog.Debug("giteego HTTP response", "status", resp.StatusCode, "url", req.URL.String(), "attempt", attempt+1)
 
 		if resp.StatusCode < 200 || resp.StatusCode > 299 {
 			lastErr = parseAPIError(resp.StatusCode, body)

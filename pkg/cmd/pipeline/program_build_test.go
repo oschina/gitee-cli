@@ -246,7 +246,7 @@ func TestProgramBuildLast(t *testing.T) {
 	if !strings.Contains(out, "Build #42  [SUCCESS]") {
 		t.Errorf("expected build render, got:\n%s", out)
 	}
-	if !strings.Contains(gotQuery, "identifier=pipeline.ops.pipeline.706") {
+	if !strings.Contains(gotQuery, "identifier=706") {
 		t.Errorf("expected pipeline identifier query, got %q", gotQuery)
 	}
 	mu.Lock()

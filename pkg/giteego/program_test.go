@@ -242,8 +242,9 @@ func TestTriggerProgramBuild(t *testing.T) {
 	}
 }
 
-// TestProgramBuildIdentifierQuery asserts build history is keyed by the pipeline
-// ops identifier.
+// TestProgramBuildIdentifierQuery asserts build history is keyed by the bare
+// numeric pipeline id (not the "pipeline.ops.pipeline.{id}" form, which the
+// backend treats as an unknown pipeline and returns an empty page).
 func TestProgramBuildIdentifierQuery(t *testing.T) {
 	rr := runAndRecord(t, "tok", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -252,15 +253,16 @@ func TestProgramBuildIdentifierQuery(t *testing.T) {
 		_, err := c.ListProgramBuildHistory(context.Background(), 706, ProgramListQuery{Current: 1, PageSize: 20})
 		return err
 	})
-	if got := rr.query.Get("identifier"); got != "pipeline.ops.pipeline.706" {
-		t.Errorf("identifier = %q, want pipeline.ops.pipeline.706", got)
+	if got := rr.query.Get("identifier"); got != "706" {
+		t.Errorf("identifier = %q, want 706", got)
 	}
 	if rr.query.Get("current") != "1" || rr.query.Get("pageSize") != "20" {
 		t.Errorf("query = %v, want current=1 pageSize=20", rr.query)
 	}
 }
 
-// TestProgramLastBuildIdentifierQuery asserts builds/last carries the identifier.
+// TestProgramLastBuildIdentifierQuery asserts builds/last carries the bare
+// numeric identifier too.
 func TestProgramLastBuildIdentifierQuery(t *testing.T) {
 	rr := runAndRecord(t, "tok", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -269,8 +271,8 @@ func TestProgramLastBuildIdentifierQuery(t *testing.T) {
 		_, err := c.GetProgramLastBuild(context.Background(), 706)
 		return err
 	})
-	if want := PipelineOpsPipelineIdentifier(706); rr.query.Get("identifier") != want {
-		t.Errorf("identifier = %q, want %q", rr.query.Get("identifier"), want)
+	if got := rr.query.Get("identifier"); got != "706" {
+		t.Errorf("identifier = %q, want 706", got)
 	}
 }
 

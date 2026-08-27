@@ -69,7 +69,7 @@ func newPipelineProgramPluginListCmd(f *cmdutil.Factory) *cobra.Command {
 					rows = append(rows, []string{catName, p.Name, p.Type, p.Description})
 				}
 			}
-			return cmdutil.WriteTable(f.IOStreams.Out, rows)
+			return cmdutil.WriteTableBordered(f.IOStreams.Out, rows)
 		},
 	}
 	cmd.Flags().StringVarP(&jsonFields, "json", "j", "", cmdutil.JSONFlagHelp[giteego.CategoryPluginVO]())

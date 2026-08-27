@@ -283,7 +283,7 @@ func durationStr(start, end *giteego.FlexTime) string {
 func printParamSection(w io.Writer, title string, params []giteego.ParamValueVO) {
 	fmt.Fprintf(w, "    %s:\n", title)
 	for _, p := range params {
-		fmt.Fprintf(w, "      %s = %s\n", p.Key, oneLine(p.Value))
+		fmt.Fprintf(w, "      %s = %s\n", p.Key, oneLine(string(p.Value)))
 	}
 }
 

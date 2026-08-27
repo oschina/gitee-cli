@@ -6,6 +6,107 @@ import (
 	"time"
 )
 
+// TestFlexInt64Number verifies FlexInt64 accepts a plain JSON number.
+func TestFlexInt64Number(t *testing.T) {
+	var f FlexInt64
+	if err := json.Unmarshal([]byte(`12`), &f); err != nil {
+		t.Fatalf("unmarshal number: %v", err)
+	}
+	if f != 12 {
+		t.Errorf("got %d, want 12", f)
+	}
+}
+
+// TestFlexInt64String verifies FlexInt64 accepts a JSON string (the gitee-go
+// backend sometimes emits prIid as a string).
+func TestFlexInt64String(t *testing.T) {
+	var f FlexInt64
+	if err := json.Unmarshal([]byte(`"12"`), &f); err != nil {
+		t.Fatalf("unmarshal string: %v", err)
+	}
+	if f != 12 {
+		t.Errorf("got %d, want 12", f)
+	}
+}
+
+// TestFlexStringScalar verifies FlexString accepts a plain JSON string.
+func TestFlexStringScalar(t *testing.T) {
+	var f FlexString
+	if err := json.Unmarshal([]byte(`"master"`), &f); err != nil {
+		t.Fatalf("unmarshal string: %v", err)
+	}
+	if f != "master" {
+		t.Errorf("got %q, want master", f)
+	}
+}
+
+// TestFlexStringArray verifies FlexString accepts a JSON string array (the
+// gitee-go backend sometimes emits inParams.value as an array).
+func TestFlexStringArray(t *testing.T) {
+	var f FlexString
+	if err := json.Unmarshal([]byte(`["master","v2"]`), &f); err != nil {
+		t.Fatalf("unmarshal array: %v", err)
+	}
+	if f != "master,v2" {
+		t.Errorf("got %q, want master,v2", f)
+	}
+}
+
+// TestFlexStringNull verifies FlexString accepts null.
+func TestFlexStringNull(t *testing.T) {
+	var f FlexString
+	if err := json.Unmarshal([]byte(`null`), &f); err != nil {
+		t.Fatalf("unmarshal null: %v", err)
+	}
+	if f != "" {
+		t.Errorf("got %q, want empty", f)
+	}
+}
+
+// TestBuildSourceDetailPrIIDAsString decodes a full build-history payload where
+// sources[].source.prIid arrives as a JSON string — the reported failure mode.
+func TestBuildSourceDetailPrIIDAsString(t *testing.T) {
+	body := `{
+		"code": 0,
+		"msg": "",
+		"data": [{
+			"id": 1,
+			"belongType": "GIT_OPS",
+			"belongIdentifier": "hightest~@~java-maven-example",
+			"buildNumber": 1,
+			"startTime": 1700000000000,
+			"endTime": 1700000100000,
+			"status": "SUCC",
+			"sources": [{
+				"name": "src",
+				"type": "GIT",
+				"identifier": "git",
+				"source": {
+					"pathWithNamespace": "hightest/java-maven-example",
+					"event": "merge_request_hooks",
+					"branch": "master",
+					"prSourceBranch": "feature-x",
+					"prIid": "12"
+				}
+			}]
+		}]
+	}`
+	var vo ResultVO[[]PipelineBuildSimpleVO]
+	if err := json.Unmarshal([]byte(body), &vo); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	if vo.Code != 0 {
+		t.Fatalf("got code %d, want 0", vo.Code)
+	}
+	src := vo.Data[0].Sources[0].Source
+	if src == nil {
+		t.Fatal("expected source detail")
+	}
+	if src.PrIID != 12 {
+		t.Errorf("got prIid %v, want 12", src.PrIID)
+	}
+}
+
 func TestFlexTimeEpochMillis(t *testing.T) {
 	var ft FlexTime
 	// Backend serializes java.util.Date as epoch millis (number).

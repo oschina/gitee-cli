@@ -95,7 +95,7 @@ func newPipelineProgramTemplateListCmd(f *cmdutil.Factory) *cobra.Command {
 					timeStr(t.UpdateTime),
 				})
 			}
-			return cmdutil.WriteTable(f.IOStreams.Out, rows)
+			return cmdutil.WriteTableBordered(f.IOStreams.Out, rows)
 		},
 	}
 	cmd.Flags().StringVarP(&jsonFields, "json", "j", "", cmdutil.JSONFlagHelp[giteego.ProgramPipelineTemplateVO]())
@@ -421,7 +421,7 @@ func newPipelineProgramTemplateCategoriesCmd(f *cmdutil.Factory) *cobra.Command 
 					timeStr(c.UpdateTime),
 				})
 			}
-			return cmdutil.WriteTable(f.IOStreams.Out, rows)
+			return cmdutil.WriteTableBordered(f.IOStreams.Out, rows)
 		},
 	}
 	cmd.Flags().StringVarP(&jsonFields, "json", "j", "", cmdutil.JSONFlagHelp[giteego.PipelineTemplateCategoryVO]())

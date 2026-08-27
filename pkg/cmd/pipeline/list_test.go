@@ -9,7 +9,8 @@ import (
 	"gitee.com/oschina/gitee-cli/pkg/giteego"
 )
 
-// TestPipelineListTable asserts the table output with a parse-error note.
+// TestPipelineListTable asserts the bordered table output with parse errors
+// rendered as warning lines below the table.
 func TestPipelineListTable(t *testing.T) {
 	var mu sync.Mutex
 	var gotPaths []string
@@ -32,14 +33,17 @@ func TestPipelineListTable(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(out, "FILE") || !strings.Contains(out, "NAME") || !strings.Contains(out, "NOTE") {
+	if !strings.Contains(out, "FILE") || !strings.Contains(out, "NAME") {
 		t.Errorf("expected table headers, got:\n%s", out)
+	}
+	if strings.Contains(out, "NOTE") {
+		t.Errorf("no NOTE column expected, got:\n%s", out)
 	}
 	if !strings.Contains(out, "ci.yml") || !strings.Contains(out, "CI") {
 		t.Errorf("expected row 1, got:\n%s", out)
 	}
-	if !strings.Contains(out, "broken.yml") || !strings.Contains(out, "parse error: syntax is invalid") {
-		t.Errorf("expected parse-error note, got:\n%s", out)
+	if !strings.Contains(out, "broken.yml: parse error: syntax is invalid") {
+		t.Errorf("expected parse-error warning line, got:\n%s", out)
 	}
 	mu.Lock()
 	defer mu.Unlock()

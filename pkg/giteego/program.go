@@ -212,11 +212,12 @@ func (c *Client) TriggerProgramBuild(ctx context.Context, reqBody PipelineOpsBui
 	return out.Data, nil
 }
 
-// ListProgramBuildHistory lists builds of a program pipeline (paged), keyed by
-// the "pipeline.ops.pipeline.{pipelineId}" identifier.
+// ListProgramBuildHistory lists builds of a program pipeline (paged). The
+// identifier query param is the bare numeric pipeline id (e.g. "11115") — the
+// "pipeline.ops.pipeline.{id}" form returns an empty page.
 func (c *Client) ListProgramBuildHistory(ctx context.Context, pipelineID int64, q ProgramListQuery) (PageVO[PipelineBuildSimpleVO], error) {
 	query := q.toQuery()
-	query["identifier"] = PipelineOpsPipelineIdentifier(pipelineID)
+	query["identifier"] = strconv.FormatInt(pipelineID, 10)
 	req, err := c.newRequest(ctx, http.MethodGet, "/rest/v5/multi-source/pipelines/builds/history", query, nil)
 	if err != nil {
 		return PageVO[PipelineBuildSimpleVO]{}, err
@@ -229,10 +230,11 @@ func (c *Client) ListProgramBuildHistory(ctx context.Context, pipelineID int64, 
 }
 
 // GetProgramLastBuild returns the most recent build of a program pipeline (null
-// if none yet).
+// if none yet). As with the history endpoint, the identifier is the bare numeric
+// pipeline id.
 func (c *Client) GetProgramLastBuild(ctx context.Context, pipelineID int64) (*PipelineBuildVO, error) {
 	req, err := c.newRequest(ctx, http.MethodGet, "/rest/v5/multi-source/pipelines/builds/last", map[string]string{
-		"identifier": PipelineOpsPipelineIdentifier(pipelineID),
+		"identifier": strconv.FormatInt(pipelineID, 10),
 	}, nil)
 	if err != nil {
 		return nil, err

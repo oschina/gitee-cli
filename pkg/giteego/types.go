@@ -3,6 +3,7 @@ package giteego
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -118,7 +119,7 @@ type BuildParamSetVO struct {
 // ParamValueVO is a single parameter entry.
 type ParamValueVO struct {
 	Key          string      `json:"key"`
-	Value        string      `json:"value"`
+	Value        FlexString  `json:"value"`
 	Type         string      `json:"type,omitempty"`
 	DefaultValue interface{} `json:"defaultValue,omitempty"`
 	Description  string      `json:"description,omitempty"`
@@ -201,15 +202,15 @@ type BuildSourceVO struct {
 // BuildSourceDetail is the runtime source info of a build (frontend displays
 // commit message and PR-vs-branch from it). Mirrors gitee-go's GitCodeSourceStruct.
 type BuildSourceDetail struct {
-	PathWithNamespace string `json:"pathWithNamespace,omitempty"`
-	Event             string `json:"event,omitempty"`
-	Branch            string `json:"branch,omitempty"`
-	RefPath           string `json:"refPath,omitempty"`
-	Revision          string `json:"revision,omitempty"`
-	PrSourceBranch    string `json:"prSourceBranch,omitempty"`
-	PrIID             int64  `json:"prIid,omitempty"`
-	PrTitle           string `json:"prTitle,omitempty"`
-	Message           string `json:"message,omitempty"`
+	PathWithNamespace string    `json:"pathWithNamespace,omitempty"`
+	Event             string    `json:"event,omitempty"`
+	Branch            string    `json:"branch,omitempty"`
+	RefPath           string    `json:"refPath,omitempty"`
+	Revision          string    `json:"revision,omitempty"`
+	PrSourceBranch    string    `json:"prSourceBranch,omitempty"`
+	PrIID             FlexInt64 `json:"prIid,omitempty"`
+	PrTitle           string    `json:"prTitle,omitempty"`
+	Message           string    `json:"message,omitempty"`
 }
 
 // PipelineBuildStatusVO covers GET /pipelines/builds/{id}/status.
@@ -683,6 +684,67 @@ type ProgramPipelineTemplateRequest struct {
 	Name        string      `json:"name,omitempty"`
 	Description string      `json:"description,omitempty"`
 	Config      *PipelineVO `json:"config,omitempty"`
+}
+
+// FlexString is a string wrapper tolerant of the gitee-go backend emitting a
+// scalar parameter value as a JSON array (e.g. inParams.value may come back as
+// ["master"] instead of "master"). It accepts a plain string, a string array
+// (joined), a number, or null.
+type FlexString string
+
+// UnmarshalJSON accepts a JSON string, a JSON array of strings, a JSON number,
+// or null.
+func (f *FlexString) UnmarshalJSON(b []byte) error {
+	s := strings.TrimSpace(string(b))
+	if s == "" || s == "null" {
+		*f = ""
+		return nil
+	}
+	if b[0] == '"' {
+		var str string
+		if err := json.Unmarshal(b, &str); err != nil {
+			return err
+		}
+		*f = FlexString(str)
+		return nil
+	}
+	if b[0] == '[' {
+		var arr []string
+		if err := json.Unmarshal(b, &arr); err != nil {
+			// Fall back to raw JSON text if the array has non-string items.
+			*f = FlexString(string(b))
+			return nil
+		}
+		*f = FlexString(strings.Join(arr, ","))
+		return nil
+	}
+	// Number, bool, or other scalar: keep the raw JSON text.
+	*f = FlexString(string(b))
+	return nil
+}
+
+// FlexInt64 is an int64 wrapper tolerant of the gitee-go backend emitting an
+// integer field as a JSON string (e.g. prIid may come back as "12" or 12).
+type FlexInt64 int64
+
+// UnmarshalJSON accepts either a JSON number or a JSON string containing an
+// integer, or null.
+func (f *FlexInt64) UnmarshalJSON(b []byte) error {
+	s := strings.TrimSpace(string(b))
+	if s == "" || s == "null" {
+		*f = 0
+		return nil
+	}
+	// Strip surrounding quotes when the backend sends a string.
+	if len(s) >= 2 && s[0] == '"' && s[len(s)-1] == '"' {
+		s = s[1 : len(s)-1]
+	}
+	n, err := strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		return fmt.Errorf("giteego: parse int %s: %w", string(b), err)
+	}
+	*f = FlexInt64(n)
+	return nil
 }
 
 // FlexTime is a time.Time wrapper tolerant of the gitee-go backend's date

@@ -85,7 +85,7 @@ func newPipelineProgramParamListCmd(f *cmdutil.Factory) *cobra.Command {
 					timeStr(p.UpdateTime),
 				})
 			}
-			return cmdutil.WriteTable(f.IOStreams.Out, rows)
+			return cmdutil.WriteTableBordered(f.IOStreams.Out, rows)
 		},
 	}
 	cmd.Flags().StringVarP(&jsonFields, "json", "j", "", cmdutil.JSONFlagHelp[giteego.ParamVO]())

@@ -11,10 +11,10 @@ import (
 	"gitee.com/oschina/gitee-cli/pkg/giteego"
 )
 
-// programPipelineIDPrefix is the identifier form used by the pipelineOps
-// *build* endpoints ("pipeline.ops.pipeline.{id}"). The pipeline list endpoint
-// returns the bare numeric id ("710") instead; pipelineIDFromIdentifier accepts
-// both forms.
+// programPipelineIDPrefix is the identifier form that pipelineOps historically
+// used for a pipeline ("pipeline.ops.pipeline.{id}"). The pipeline list endpoint
+// returns the bare numeric id ("710") and the build history/last endpoints now
+// also expect the bare numeric id; pipelineIDFromIdentifier accepts both forms.
 const programPipelineIDPrefix = "pipeline.ops.pipeline."
 
 // newPipelineProgramCmd returns the `pipeline program` command family for
@@ -31,9 +31,9 @@ func newPipelineProgramCmd(f *cmdutil.Factory) *cobra.Command {
 scoped to an enterprise and a program rather than a repository.
 
 Program pipelines are addressed by --enterprise/-E <enterprise-id> and
---program/-P <program-id>. A program pipeline's list id is the bare
-pipeline id (e.g. 706), while its build history endpoint uses the
-"pipeline.ops.pipeline.706" identifier.`,
+--program/-P <program-id>. A program pipeline's id is the bare numeric
+pipeline id (e.g. 706); the "pipeline.ops.pipeline.706" identifier form
+is also accepted on input but the build endpoints identify by the bare id.`,
 		Example: `  gitee pipeline program list -E 2 -P 423
   gitee pipeline program run --pipeline 706 -E 2 -P 423
   gitee pipeline program build list --pipeline 706 -E 2 -P 423`,

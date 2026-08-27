@@ -121,7 +121,7 @@ remote-select endpoint — this mode requires -R owner/repo.`,
 			for _, opt := range resp.List {
 				rows = append(rows, []string{opt.Key, opt.Label, componentValue(opt)})
 			}
-			return cmdutil.WriteTable(f.IOStreams.Out, rows)
+			return cmdutil.WriteTableBordered(f.IOStreams.Out, rows)
 		},
 	}
 

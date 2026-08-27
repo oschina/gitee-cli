@@ -82,7 +82,7 @@ func TestProgramPipelineList(t *testing.T) {
 			t.Errorf("expected header %q in output, got:\n%s", want, out)
 		}
 	}
-	if !strings.Contains(out, "706  build-all") || !strings.Contains(out, "707  deploy") {
+	if !strings.Contains(out, "│ 706 │ build-all │") || !strings.Contains(out, "│ 707 │ deploy") {
 		t.Errorf("expected id+name rows, got:\n%s", out)
 	}
 }

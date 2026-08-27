@@ -1,10 +1,12 @@
 package giteego
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -321,4 +323,36 @@ type errorTransport struct {
 
 func (e errorTransport) RoundTrip(*http.Request) (*http.Response, error) {
 	return nil, e.err
+}
+
+// TestDoLogsRequestURL verifies that the debug log includes the full request URL.
+func TestDoLogsRequestURL(t *testing.T) {
+	var buf bytes.Buffer
+	handler := slog.NewTextHandler(&buf, &slog.HandlerOptions{Level: slog.LevelDebug})
+	slog.SetDefault(slog.New(handler))
+
+	c, _ := testClient("tok", func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, jsonBody(t, map[string]interface{}{"ok": true}))
+	})
+	req, err := c.newRequest(context.Background(), http.MethodGet, "/rest/v5/pipelines/builds/history", map[string]string{"ref": "master"}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var out ResultVO[map[string]interface{}]
+	if err := c.do(req, &out); err != nil {
+		t.Fatalf("do: %v", err)
+	}
+	logged := buf.String()
+	if !strings.Contains(logged, "giteego HTTP request") {
+		t.Errorf("expected debug log to contain 'giteego HTTP request', got: %s", logged)
+	}
+	if !strings.Contains(logged, "go-api.example/gitee-go/ipipe/rest/v5/pipelines/builds/history") {
+		t.Errorf("expected debug log to contain the request URL, got: %s", logged)
+	}
+	if !strings.Contains(logged, "method=GET") {
+		t.Errorf("expected debug log to contain method=GET, got: %s", logged)
+	}
+	if !strings.Contains(logged, "giteego HTTP response") {
+		t.Errorf("expected debug log to contain 'giteego HTTP response', got: %s", logged)
+	}
 }

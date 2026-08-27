@@ -1781,7 +1781,7 @@ func renderProgramPipelineList(f *cmdutil.Factory, data []giteego.PipelineSummar
 			})
 		}
 	}
-	return cmdutil.WriteTable(out, rows)
+	return cmdutil.WriteTableBordered(out, rows)
 }
 
 // groupLabels renders pipeline labels compactly (label1,label2).
