@@ -1,21 +1,24 @@
 ---
 name: gitee-go
-description: Manage Gitee-Go pipelines (GitOps) from the CLI — repository pipelines (list/view/commit YAML, trigger builds, inspect build/(stage/job) runs, plugins & Schemes) use `-R owner/repo`; project pipelines (pipelineOps, enterprise-scoped) use `-E <entId> -P <projectId>`. Use when the user asks to run, list, view, commit, cancel, inspect, create/assemble a Gitee-Go repository or project pipeline or its plugins (e.g. "跑一下流水线", "看流水线", "触发构建", "提交流水线", "创建项目流水线", "组装 job json", "插件", "项目流水线"). Always uses `--json` where supported and `--no-tui`; never uses `--ai`; requires explicit user confirmation before commit/cancel/rebuild/delete and other side-effect operations. If a requested gitee-go operation has no direct command, fall back to the gitee-api skill to search the schema.
+description: Manage Gitee-Go pipelines (GitOps) from the CLI — repository pipelines (list/view/commit YAML, trigger builds, inspect build/(stage/job) runs, plugins & Schemes) use `-R owner/repo`; project pipelines (pipelineOps, enterprise-scoped) use `-E <entId> -P <projectId>`. Use when the user asks to run, list, view, commit, cancel, inspect, create/assemble a Gitee-Go repository or project pipeline or its plugins (e.g. "跑一下流水线", "看流水线", "触发构建", "提交流水线", "创建项目流水线", "组装 job json", "插件", "项目流水线"). Always uses `--json` where supported and `--no-tui`; never uses `--ai`. Commands with a built-in confirmation use `--yes`/`-y` in non-interactive mode (see 前置检查 #3 for the built-in-vs-none list); commands without one (run/cancel/rebuild) must get the user's explicit ok before running. If a requested gitee-go operation has no direct command, fall back to the gitee-api skill to search the schema.
 metadata:
   author: gitee
   version: "1.0"
 ---
 管理 Gitee-Go 流水线（GitOps）的命令，分两类：
 - **仓库流水线**（`gitee pipeline`，下面前置检查/Step 1–5）：**必须 `-R owner/repo`**，不依赖 git remote 推断。
-- **项目流水线 pipelineOps**（`gitee pipeline program`，见「项目流水线」章节）：**必须 `-E <企业id> -P <项目id>`**，走
-  `/rest/v5/multi-source/` 网关段，按企业+项目定位，不依赖 `-R`、不做 gitee-go 开通检查。
-两者都需要先通过 `gitee auth login` 完成认证（gitee-go 网关复用同一 host 凭证，临时也可用 `.gitee-go/cookie`）。
+- **项目流水线 pipelineOps**（`gitee pipeline program`，见「项目流水线」章节）：**必须 `-E <企业id> -P <项目id>`**，
+  按企业+项目定位，不依赖 `-R`、不做 gitee-go 开通检查。
+两者都需要先通过 `gitee auth login` 完成认证。
 ## 前置检查
 1. **已认证**：`gitee auth status --no-tui`，失败则提示 `gitee auth login`。
 2. **仓库参数必填**：所有 `gitee pipeline ...` 命令都必须带 `-R owner/repo`；缺省会直接报错
    「repo is required for pipeline commands」。不要用 `default_repo` 或 git remote 猜测。
-3. **副作用操作需确认**：`commit / run / build cancel / build rebuild` 属于写入/触发/改变运行状态，
-   执行前必须向用户明确确认；非交互环境下确认后才执行。
+3. **副作用操作需确认**：分清 CLI 是否内置确认——
+   - CLI **内置确认**（交互态弹确认，非交互必须 `--yes`/`-y` 否则报 `--yes is required in non-interactive mode`）：
+     `commit`、`build stage/job`（cancel/retry/continue/skip/mark-success）、project 侧 `build cancel / delete / param delete / history-apply / template delete|disable`。
+   - CLI **无内置确认**（没有 `--yes`，执行即生效）：`run`、`program run`、`build cancel`、`build rebuild`、`program create/edit`、`program build rebuild`、`template enable`。
+     这类命令非交互下也会**直接执行**，作为 agent 必须在调用前明确与用户确认，不可擅自触发。
 4. **gitee-go 未开启**：每个命令前会检查 gitee-go 是否已开通；**未开通直接报错**，报错信息里带
    开通页面地址（`{host}/{owner}/{repo}/gitee_go/open?qt=path`），让用户**自行打开页面开通**后重试。
    **不存在 `--with-open` 自动代开逻辑**（open URL 无法由 CLI 驱动，不要尝试帮用户打开）。
@@ -101,7 +104,7 @@ gitee pipeline run -R owner/repo --ref master --file 流水线.yml --params KEY=
 | `--params` | string | 逗号分隔 `KEY=VALUE` 构建参数 |
 | `--json` / `-j` | string | **必须加** |
 | `--no-tui` | bool | **必须加** |
-> `run` 是**触发操作**：执行前需向用户确认。
+> `run` 是**触发操作**：CLI 无内置确认（无 `--yes`），非交互下也会直接执行；触发前 agent 必须向用户明确确认。
 ### Step 3：查看构建运行（build view / last / status）
 ```bash
 gitee pipeline build view 123 -R owner/repo --json --no-tui
@@ -129,13 +132,13 @@ gitee pipeline build status 123 -R owner/repo --json --no-tui
 > `build list` 表格含 SOURCE/COMMIT 列：PR 触发显示 `PR #N`，push 显示分支；COMMIT 取
 > `sources[].source.message`（PR 构建时为 PR 标题，对齐前端行为）。
 > `status` 的 `data.stages[].jobs` 是二维数组（并行/串行）。
-### Step 4：取消 / 重新构建（build cancel / rebuild）— 副作用，需确认
+### Step 4：取消 / 重新构建（build cancel / rebuild）— 副作用，CLI 无内置确认
 ```bash
-# 先确认再执行
 gitee pipeline build cancel 123 -R owner/repo --no-tui
 gitee pipeline build rebuild 123 -R owner/repo --json --no-tui
 ```
-> ⚠️ `cancel`、`rebuild` 会改变运行状态，执行前必须向用户明确确认。
+> ⚠️ `cancel`、`rebuild` 改变运行状态，但 CLI **无 `--yes`、无内置确认**，非交互下直接执行；
+> 调用前 agent 必须向用户明确确认，不可擅自执行。
 ### Step 4.5：构建的阶段 / 任务运行操作（build stage / build job）— 副作用，需确认
 阶段（stage）与任务（job）是 `pipeline build` 下的子命令，属于**构建运行期的实体**，
 没有管理 / 配置的概念：不存在 list / create / update / delete / 配置类命令，也不能脱离
@@ -213,8 +216,7 @@ gitee pipeline request "https://premium-k8s.gitee.cn/2/426/gitee-go/log-server/.
 ## 项目流水线（pipelineOps，`gitee pipeline program`）
 **定位：按企业+项目**。所有命令必须以 `-E <企业id>`（enterprise）和 `-P <项目id>`（project）定位，
 缺任一直接报错：`enterprise id is required: use --enterprise/-E <id>` / `program id is required: use --program/-P <id>`。
-请求走 `/rest/v5/multi-source/` 网关段（如 `/2/423/gitee-go/ipipe/rest/v5/multi-source/pipelines`）。
-与仓库流水线不同：**不做 gitee-go 开通检查、不需要 `--ref/--file`**；每个请求恰好一次调用。
+与仓库流水线不同：**不做 gitee-go 开通检查、不需要 `-R` / `--ref` / `--file`**；每个请求恰好一次调用。
 > 项目流水线 ID 是**数字**：`program list` 输出即数字 id；也可以接受完整 identifier（`pipeline.ops.pipeline.706`）。
 > 副作用操作（`delete` / `param delete` / `build cancel` / `history-apply` / `template delete|disable`）在
 > 非交互下**必须 `--yes`/`-y`**，否则报 `--yes is required in non-interactive mode`。
@@ -336,13 +338,13 @@ gitee pipeline program plugin scheme -E 2 -P 423 --type maven-build@v1.0.0 --jso
 | "看仓库流水线 / 流水线列表" | Step 1 list | 否 |
 | "看某条流水线配置" | Step 1 view | 否 |
 | "要个流水线 YAML 示例 / 生成示例流水线（整条）" | Step 1.6 example | 否 |
-| "触发构建 / 跑一下流水线" | Step 2 run | **是（触发）** |
+| "触发构建 / 跑一下流水线" | Step 2 run | 否（无内置确认，直接执行；agent 先与用户确认） |
 | "看构建 / 最后一次构建" | Step 3 build view/last | 否 |
 | "构建状态" | Step 3 build status | 否 |
-| "取消构建" | Step 4 build cancel | **是（改变状态）** |
-| "重新构建" | Step 4 build rebuild | **是（改变状态）** |
-| "阶段/任务运行操作 / 跳过任务（运行时实体）" | Step 4.5 `build stage/job`（cancel/retry/continue/skip/mark-success） | **是（改变状态）** |
-| "继续暂停的阶段" | Step 4.5 `build stage continue` | **是（改变状态）** |
+| "取消构建" | Step 4 build cancel | 否（无内置确认，直接执行；agent 先与用户确认） |
+| "重新构建" | Step 4 build rebuild | 否（无内置确认，直接执行；agent 先与用户确认） |
+| "阶段/任务运行操作 / 跳过任务（运行时实体）" | Step 4.5 `build stage/job`（cancel/retry/continue/skip/mark-success） | 是（内置确认，非交互加 `--yes`） |
+| "继续暂停的阶段" | Step 4.5 `build stage continue` | 是（内置确认，非交互加 `--yes`） |
 | "插件 / 有哪些插件" | Step 5 plugin list | 否 |
 | "插件参数/怎么配这插件" | Step 5 plugin scheme | 否 |
 | "插件示例 / 示例 yaml" | Step 5 plugin example | 否 |
@@ -350,11 +352,11 @@ gitee pipeline program plugin scheme -E 2 -P 423 --type maven-build@v1.0.0 --jso
 | "抓取日志 URL / 已登录 GET 某地址" | Step 5 pipeline request（URL 模式，无需 -R） | 否 |
 | "项目流水线 / pipelineOps" | `pipeline program ...`（-E 企业id -P 项目id） | 否 |
 | "项目流水线列表/配置" | `pipeline program list / view`（-E -P） | 否 |
-| "创建/编辑项目流水线 JSON / 组装 job data（组件 convertor）" | `pipeline program create/edit --body <json>`（-E -P，job data 按「convertor 规则」子步骤组装） | **是（提交配置）** |
-| "触发项目流水线构建" | `pipeline program run --pipeline <id>`（-E -P） | **是（触发）** |
+| "创建/编辑项目流水线 JSON / 组装 job data（组件 convertor）" | `pipeline program create/edit --body <json>`（-E -P，job data 按「convertor 规则」子步骤组装） | 否（无内置确认，直接执行；提交配置前 agent 先与用户确认） |
+| "触发项目流水线构建" | `pipeline program run --pipeline <id>`（-E -P） | 否（无内置确认，直接执行；agent 先与用户确认） |
 | "项目流水线构建查看/状态" | `pipeline program build view/last/status`（-E -P） | 否 |
-| "取消/重建项目流水线构建" | `pipeline program build cancel / rebuild`（-E -P） | **是（改变状态）** |
-| "项目流水线阶段/任务运行操作（运行时实体）" | `pipeline program build stage/job ...`（-E -P） | **是（改变状态）** |
+| "取消/重建项目流水线构建" | `pipeline program build cancel / rebuild`（-E -P） | cancel：是（内置确认，加 `--yes`）；rebuild：否（无内置确认，直接执行） |
+| "项目流水线阶段/任务运行操作（运行时实体）" | `pipeline program build stage/job ...`（-E -P） | 是（内置确认，非交互加 `--yes`） |
 | "项目流水线模板/参数模板" | `pipeline program template list / param list`（-E -P） | 否 |
 ## 完整示例
 ```bash
@@ -391,4 +393,4 @@ gitee pipeline request PLUGIN_JAVA_VERSION -R autodeploy/java-maven-example --ty
 | `--pipeline <pipeline-id> is required` | `build last` 缺 `--pipeline` | 补 `--pipeline <id>` |
 | `--yes is required in non-interactive mode` | 项目副作用操作缺确认 | 加 `--yes`/`-y` |
 | `belongs to build ... already finished` | stage/job 操作要求所属构建仍在运行 | 构建已终态，无法再 cancel/retry/skip，改用 `build view` 查看结果 |
-| `authentication required` | 未认证 | `gitee auth login`（或检查 `.gitee-go/cookie`） |
+| `authentication required` | 未认证 | `gitee auth login` |
