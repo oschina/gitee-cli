@@ -19,6 +19,19 @@ metadata:
 4. **gitee-go 未开启**：每个命令前会检查 gitee-go 是否已开通；**未开通直接报错**，报错信息里带
    开通页面地址（`{host}/{owner}/{repo}/gitee_go/open?qt=path`），让用户**自行打开页面开通**后重试。
    **不存在 `--with-open` 自动代开逻辑**（open URL 无法由 CLI 驱动，不要尝试帮用户打开）。
+## 生成/提交流水线的强制规则（写 YAML / 组装 JSON 前必读）
+当需要**生成**或**组装**流水线（仓库 YAML 提交到仓库、项目流水线 create/edit JSON、插件 job 片段）时：
+1. **不要凭记忆或猜测拼格式**：所有字段名 / 必填项 / 可选组件（stages/steps/triggers/notify/strategy/
+   variables，以及插件的每个参数）**都以接口为准**——仓库流水线用 `pipeline example`（整条模板）+
+   `pipeline plugin scheme`（单插件字段），项目流水线用 `pipeline program plugin scheme --json=*`
+   （组件 convertor 规则）。示例片段（`plugin example`）仅供参考字段名，实际提交仍按 scheme/convertor。
+2. **基于 example/接口结果改造，不自造结构**：拿 `pipeline example` 返回的完整 YAML 作基线，只改
+   用户要改的部分（阶段、步骤、触发、参数）。不要凭空新增未知字段或臆造值。
+3. **不可得的选项留 TODO 给用户，不替用户猜测**：凭证（Certification）/ 主机（HostSelect）等
+   **无 API 可查或不可替选**的组件，填占位文本并**明确告知用户**这些字段是预留给他在页面二次编辑的
+   TODO；用户没给的值（如分支名、版本号）一律不臆造，列为待确认项再提交。
+4. **提交前核对**：能跑 `list/view/plugin scheme` 核对的先在本地核对一遍；`commit` 是副作用操作需确认。
+
 ## 执行步骤
 ### Step 1：查看仓库流水线（pipeline list / view）
 ```bash
@@ -44,6 +57,9 @@ gitee pipeline view -R owner/repo --ref master --file ci.yml --json --no-tui
 在仓库中产生一次提交：执行前必须确认，非交互必须 `--yes`。
 **fileName 只带文件名、不带目录前缀**（如 `流水线-202608131716.yml`）：省略 `--file` 时
 默认取本地 `--yaml` 文件的基本名；显式传 `--file` 带路径也会被归一到基本名。
+> 🚫 **不要自己写 YAML**：要提交给仓库的流水线 YAML 应以 `pipeline example` 返回的模板为基线
+> 改造（见「生成/提交流水线的强制规则」），字段名以 `plugin scheme` / convertor 为准，凭证/主机
+> 等不可选项填占位并提示用户在页面二次编辑（TODO）。
 ```bash
 gitee pipeline commit -R owner/repo --ref master --yaml ./ci.yml -m "feat: 新增 CI 流水线" --yes --no-tui   # fileName 默认 = ci.yml
 gitee pipeline commit -R owner/repo --ref develop --file 流水线.yml --yaml release.yml --yes --no-tui        # 未传 -m 用默认提交信息
@@ -64,6 +80,8 @@ gitee pipeline commit -R owner/repo --ref develop --file 流水线.yml --yaml re
 从后端拉一份**完整仓库流水线 YAML 示例**（`GET /rest/v5/yaml/example`：version/name/displayName、
 stages+steps、triggers（push/pr/schedule）、notify、strategy、variables）。与 `pipeline plugin example`
 （单个插件 job 片段）不同，它是整条流水线，可直接改造成自己的配置再 `pipeline commit` 提交。
+> **YAML 一律以本命令返回的模板为基线改造，不要凭记忆/猜测写字段**；插件参数用
+> `plugin scheme` 核对，凭证/主机等不可选项留 TODO 给用户（见「生成/提交流水线的强制规则」）。
 ```bash
 gitee pipeline example -R owner/repo --no-tui
 ```
@@ -245,6 +263,8 @@ gitee pipeline program param delete 12 -E 2 -P 423 --yes --no-tui
 ```
 ### 子步骤：项目流水线 create/edit 的 JSON 组装（插件组件 convertor 规则）
 `program create/edit --body <json>`（或 `--config`，值为 `-` 时读 stdin）提交 `PipelineRequest` JSON。
+> **不要凭记忆/猜测组装 JSON**：字段名与归属一律以 `plugin scheme --json=*` 的 `convertor` 为准，
+> 凭证/主机等不可选项留 TODO 给用户（见「生成/提交流水线的强制规则」）。
 **每个 job 的 `data` 按插件 scheme 的组件 `convertor` 规则组装**（镜像 gitee-go
 `Converter.toFormGeneric` 与前端 `PluginTypeRelation.ts`）。组装前先拿 scheme——
 `--json=*` 输出完整 `config`，每项组件含 `type / identifier / options / children` 与
