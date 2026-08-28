@@ -61,6 +61,80 @@ func TestPipelineRunParams(t *testing.T) {
 	}
 }
 
+// TestPipelineRunNormalizeFileName asserts a path-style --file (e.g.
+// .workflow/ci.yml) is reduced to its base name before being sent to the
+// backend, and that the note line surfaces the normalized name.
+func TestPipelineRunNormalizeFileName(t *testing.T) {
+	var mu sync.Mutex
+	var gotBody string
+	f := newTestFactory(t, func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if strings.Contains(r.URL.Path, "billing") {
+			_, _ = w.Write(jsonBody(t, map[string]interface{}{"enabled": true}))
+			return
+		}
+		mu.Lock()
+		gotBody = readBody(t, r)
+		mu.Unlock()
+		_, _ = w.Write(jsonBody(t, giteego.PipelineBuildVO{
+			ID:          7,
+			BuildNumber: 12,
+			Status:      "WAITTING",
+		}))
+	}, nil)
+
+	out, _, err := runPipelineCmd(t, f, "run", "-R", "owner/repo", "--ref", "master", "--file", ".workflow/ci.yml")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(out, `Note: using file "ci.yml" (input: ".workflow/ci.yml")`) {
+		t.Errorf("expected filename note, got:\n%s", out)
+	}
+	mu.Lock()
+	defer mu.Unlock()
+	if !strings.Contains(gotBody, `"fileName":"ci.yml"`) {
+		t.Errorf("expected normalized fileName in body, got %s", gotBody)
+	}
+	if strings.Contains(gotBody, `.workflow/ci.yml`) {
+		t.Errorf("expected no path prefix in body, got %s", gotBody)
+	}
+}
+
+// TestPipelineRunFileNameBaseNotSent verifies a bare --file (no path) stays
+// as-is and no note line is printed (the round-trip is unchanged).
+func TestPipelineRunFileNameBaseNotSent(t *testing.T) {
+	var mu sync.Mutex
+	var gotBody string
+	f := newTestFactory(t, func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if strings.Contains(r.URL.Path, "billing") {
+			_, _ = w.Write(jsonBody(t, map[string]interface{}{"enabled": true}))
+			return
+		}
+		mu.Lock()
+		gotBody = readBody(t, r)
+		mu.Unlock()
+		_, _ = w.Write(jsonBody(t, giteego.PipelineBuildVO{
+			ID:          7,
+			BuildNumber: 12,
+			Status:      "WAITTING",
+		}))
+	}, nil)
+
+	out, _, err := runPipelineCmd(t, f, "run", "-R", "owner/repo", "--ref", "master", "--file", "ci.yml")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(out, "Note: using file") {
+		t.Errorf("expected no note for bare filename, got:\n%s", out)
+	}
+	mu.Lock()
+	defer mu.Unlock()
+	if !strings.Contains(gotBody, `"fileName":"ci.yml"`) {
+		t.Errorf("expected bare fileName in body, got %s", gotBody)
+	}
+}
+
 // TestPipelineRunInvalidParam asserts a malformed KEY=VALUE is rejected and that
 // the trigger (post-billing) call never happens.
 func TestPipelineRunInvalidParam(t *testing.T) {

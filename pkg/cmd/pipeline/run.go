@@ -2,6 +2,7 @@ package pipeline
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -20,7 +21,7 @@ func newPipelineRunCmd(f *cmdutil.Factory) *cobra.Command {
 		Use:   "run",
 		Short: "Trigger a repository pipeline build",
 		Long:  `Trigger a gitee-go repository pipeline build for a YAML file on a ref (branch/tag).`,
-		Example: `  gitee pipeline run -R owner/repo --ref master --file .gitee/pipelines/ci.yml
+		Example: `  gitee pipeline run -R owner/repo --ref master --file pipeline-example.yml
   gitee pipeline run -R owner/repo --ref release-1.0 --file ci.yml -p KEY=VALUE -p OTHER=x --json`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			owner, repo, err := resolveOwnerRepo(f, cmd)
@@ -33,6 +34,15 @@ func newPipelineRunCmd(f *cmdutil.Factory) *cobra.Command {
 			client, err := repoPipelineClientForService(f, owner, repo, giteego.ServiceIPipe)
 			if err != nil {
 				return err
+			}
+			// The backend's fileName is a bare file name (no directory prefix).
+			// Tolerate an accidental directory prefix (e.g. `.workflow/ci.yml`)
+			// by normalizing to the base name, but keep the note visible so the
+			// user learns the canonical bare-name form.
+			base := filepath.Base(fileName)
+			if base != fileName {
+				fmt.Fprintf(f.IOStreams.Out, "Note: using file %q (input: %q)\n", base, fileName)
+				fileName = base
 			}
 			req := giteego.BuildRequest{FileName: fileName, Ref: ref}
 			for _, kv := range params {
@@ -91,7 +101,7 @@ func newPipelineRunCmd(f *cmdutil.Factory) *cobra.Command {
 
 	cmd.Flags().StringVar(&ref, "ref", "", "Git branch or tag (required)")
 	_ = cmd.MarkFlagRequired("ref")
-	cmd.Flags().StringVar(&fileName, "file", "", "Pipeline YAML file name (required)")
+	cmd.Flags().StringVar(&fileName, "file", "", "Pipeline YAML file name in the repo root (no directory prefix; required)")
 	_ = cmd.MarkFlagRequired("file")
 	cmd.Flags().StringArrayVarP(&params, "param", "p", nil, "Build param as KEY=VALUE (repeated)")
 	cmd.Flags().StringVarP(&jsonFields, "json", "j", "", cmdutil.JSONFlagHelp[giteego.PipelineBuildVO]())

@@ -26,8 +26,8 @@ metadata:
 gitee pipeline list -R owner/repo --ref master --json --no-tui
 gitee pipeline list -R owner/repo --ref develop --json --no-tui
 
-# 查看某个流水线文件的 YAML 详情
-gitee pipeline view -R owner/repo --ref master --file .gitee/pipelines/ci.yml --json --no-tui
+# 查看某个流水线文件的 YAML 详情（fileName 是裸文件名，不带目录前缀）
+gitee pipeline view -R owner/repo --ref master --file ci.yml --json --no-tui
 ```
 **可用 flag：**
 | Flag | 类型 | 说明 |
@@ -71,8 +71,8 @@ gitee pipeline example -R owner/repo --no-tui
 > 先 `example` 拿模板 → 按需改 → `commit` 提交 → `list/view` 核对 → `run` 触发。
 ### Step 2：触发仓库流水线构建（run）
 ```bash
-gitee pipeline run -R owner/repo --ref master --file .gitee/pipelines/ci.yml --json --no-tui
-gitee pipeline run -R owner/repo --ref master --file ci.yml --params KEY=VALUE,KEY2=VALUE2 --json --no-tui
+gitee pipeline run -R owner/repo --ref master --file ci.yml --json --no-tui
+gitee pipeline run -R owner/repo --ref master --file 流水线.yml --params KEY=VALUE,KEY2=VALUE2 --json --no-tui
 ```
 **可用 flag：**
 | Flag | 类型 | 说明 |
@@ -176,6 +176,22 @@ gitee pipeline request "https://premium-k8s.gitee.cn/2/426/gitee-go/log-server/.
 > **凭证 / 主机组件**：若插件 scheme 含 `Certification`（凭证）或 `HostSelect`（主机），CLI 目前
 > **没有可用 API** 代为选择；提交（`pipeline commit`）后需**提示用户到页面二次编辑**，在凭证/主机
 > 下拉中选中真实值，之后该流水线才能正常使用。
+> **⚠️ 抓取日志 URL 响应急大，必须写临时文件再读**：`pipeline request "<log-url>"`（URL 模式，
+> 拉 `build view` 输出的 `record.loggers[].logger` 构建日志）返回的响应往往几十 MB，已经把全量
+> 输出贴进对话会把 AI 上下文撑爆——**绝不能**把整个响应直接带回对话/终端。
+> 标准做法：先把响应落盘到临时文件，再用脚本解析出 `data.logs[]`（每条一条转义日志），按关键字
+> 筛出少量关键行（如 `ERROR` / `BUILD FAILURE` / `Tests run` / `exit code`），**只**把命中行带回对话：
+> ```bash
+> gitee pipeline request "<log-url>" --no-tui > /tmp/pipeline-log.json
+> python3 -c '
+> import json,sys
+> d=json.load(open("/tmp/pipeline-log.json"))
+> for l in d["data"]["logs"]:
+>     if any(k in l for k in ("ERROR","FAIL","Tests run","exit code")): print(l.rstrip())
+> '
+> ```
+> `gitee-go` 的日志响应体是 `{"code":200,"data":{"logs":[...]}}` 结构；若后端返回的是无结构的
+> 字符流（如网关错误页 / 404），同样先落盘查看开头若干行即可，不要整包引入上下文。
 ## 项目流水线（pipelineOps，`gitee pipeline program`）
 **定位：按企业+项目**。所有命令必须以 `-E <企业id>`（enterprise）和 `-P <项目id>`（project）定位，
 缺任一直接报错：`enterprise id is required: use --enterprise/-E <id>` / `program id is required: use --program/-P <id>`。
@@ -322,9 +338,9 @@ gitee pipeline program plugin scheme -E 2 -P 423 --type maven-build@v1.0.0 --jso
 | "项目流水线模板/参数模板" | `pipeline program template list / param list`（-E -P） | 否 |
 ## 完整示例
 ```bash
-# 罗列 master 上的流水线并查看 ci.yml
+# 罗列 master 上的流水线并查看 ci.yml（fileName 是裸文件名，不带目录前缀）
 gitee pipeline list -R autodeploy/java-maven-example --ref master --json --no-tui
-gitee pipeline view -R autodeploy/java-maven-example --ref master --file .gitee/pipelines/ci.yml --json --no-tui
+gitee pipeline view -R autodeploy/java-maven-example --ref master --file ci.yml --json --no-tui
 
 # 拉一份整条仓库流水线 YAML 示例作模板
 gitee pipeline example -R autodeploy/java-maven-example --no-tui

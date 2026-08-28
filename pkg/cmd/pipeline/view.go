@@ -18,8 +18,8 @@ func newPipelineViewCmd(f *cmdutil.Factory) *cobra.Command {
 		Use:   "view",
 		Short: "View a repository pipeline YAML",
 		Long:  `View the gitee-go pipeline YAML configuration of a file for a ref (branch/tag).`,
-		Example: `  gitee pipeline view -R owner/repo --ref master --file .gitee/pipelines/ci.yml
-  gitee pipeline view -R owner/repo --ref master --file ci.yml --json`,
+		Example: `  gitee pipeline view -R owner/repo --ref master --file ci.yml
+  gitee pipeline view -R owner/repo --ref master --file release.yml --json`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			owner, repo, err := resolveOwnerRepo(f, cmd)
 			if err != nil {
