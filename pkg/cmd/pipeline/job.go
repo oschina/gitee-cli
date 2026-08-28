@@ -44,7 +44,7 @@ func newPipelineJobCancelCmd(f *cmdutil.Factory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "cancel <job-id>",
 		Short:   "Cancel a job (requires a running build)",
-		Example: `  gitee pipeline build job cancel 2730`,
+		Example: `  gitee pipeline build job cancel 2730 -R owner/repo`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := jobIDArg(args)
@@ -81,7 +81,7 @@ func newPipelineJobSkipCmd(f *cmdutil.Factory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "skip <job-id>",
 		Short:   "Skip a job (requires a running build)",
-		Example: `  gitee pipeline build job skip 2730`,
+		Example: `  gitee pipeline build job skip 2730 -R owner/repo`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := jobIDArg(args)
@@ -118,7 +118,7 @@ func newPipelineJobRetryCmd(f *cmdutil.Factory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "retry <job-id>",
 		Short:   "Retry a job (requires a running build)",
-		Example: `  gitee pipeline build job retry 2730`,
+		Example: `  gitee pipeline build job retry 2730 -R owner/repo`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := jobIDArg(args)
@@ -156,7 +156,7 @@ func newPipelineJobMarkSuccessCmd(f *cmdutil.Factory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "mark-success <job-id>",
 		Short:   "Mark a job as success (requires a running build)",
-		Example: `  gitee pipeline build job mark-success 2730`,
+		Example: `  gitee pipeline build job mark-success 2730 -R owner/repo`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := jobIDArg(args)

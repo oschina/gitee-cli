@@ -84,7 +84,7 @@ func newPipelineStageViewCmd(f *cmdutil.Factory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "view <stage-id>",
 		Short:   "Show a stage",
-		Example: `  gitee pipeline build stage view 2278`,
+		Example: `  gitee pipeline build stage view 2278 -R owner/repo`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := stageIDArg(args)
@@ -137,7 +137,7 @@ func newPipelineStageCancelCmd(f *cmdutil.Factory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "cancel <stage-id>",
 		Short:   "Cancel a stage (requires a running build)",
-		Example: `  gitee pipeline build stage cancel 2278`,
+		Example: `  gitee pipeline build stage cancel 2278 -R owner/repo`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := stageIDArg(args)
@@ -177,7 +177,7 @@ func newPipelineStageRetryCmd(f *cmdutil.Factory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "retry <stage-id>",
 		Short:   "Retry a stage (requires a running build)",
-		Example: `  gitee pipeline build stage retry 2278`,
+		Example: `  gitee pipeline build stage retry 2278 -R owner/repo`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := stageIDArg(args)
@@ -217,7 +217,7 @@ func newPipelineStageContinueCmd(f *cmdutil.Factory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "continue <stage-id>",
 		Short:   "Continue a paused stage",
-		Example: `  gitee pipeline build stage continue 2278`,
+		Example: `  gitee pipeline build stage continue 2278 -R owner/repo`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := stageIDArg(args)

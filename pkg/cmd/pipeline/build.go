@@ -73,9 +73,9 @@ func newPipelineBuildViewCmd(f *cmdutil.Factory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "view <build-id>",
 		Short: "View a pipeline build",
-		Example: `  gitee pipeline build view 123
-  gitee pipeline build view 123 --json
-  gitee pipeline build view 123 -w`,
+		Example: `  gitee pipeline build view 123 -R owner/repo
+  gitee pipeline build view 123 -R owner/repo --json
+  gitee pipeline build view 123 -R owner/repo -w`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := buildIDArg(args)
@@ -383,8 +383,8 @@ func newPipelineBuildStatusCmd(f *cmdutil.Factory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "status <build-id>",
 		Short: "Show a pipeline build status tree",
-		Example: `  gitee pipeline build status 123
-  gitee pipeline build status 123 --json`,
+		Example: `  gitee pipeline build status 123 -R owner/repo
+  gitee pipeline build status 123 -R owner/repo --json`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := buildIDArg(args)
@@ -454,7 +454,7 @@ func newPipelineBuildCancelCmd(f *cmdutil.Factory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "cancel <build-id>",
 		Short:   "Cancel a pipeline build",
-		Example: `  gitee pipeline build cancel 123`,
+		Example: `  gitee pipeline build cancel 123 -R owner/repo`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := buildIDArg(args)
@@ -480,7 +480,7 @@ func newPipelineBuildRebuildCmd(f *cmdutil.Factory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "rebuild <build-id>",
 		Short:   "Re-run a pipeline build",
-		Example: `  gitee pipeline build rebuild 123`,
+		Example: `  gitee pipeline build rebuild 123 -R owner/repo`,
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := buildIDArg(args)

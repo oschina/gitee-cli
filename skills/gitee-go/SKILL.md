@@ -104,11 +104,11 @@ gitee pipeline run -R owner/repo --ref master --file 流水线.yml --params KEY=
 > `run` 是**触发操作**：执行前需向用户确认。
 ### Step 3：查看构建运行（build view / last / status）
 ```bash
-gitee pipeline build view 123 --json --no-tui
-gitee pipeline build view 123 -w --no-tui          # 每 2s 刷新至终态（SUCCESS/FAILED/CANCELLED/SKIPPED/TIMEOUT）
+gitee pipeline build view 123 -R owner/repo --json --no-tui
+gitee pipeline build view 123 -R owner/repo -w --no-tui         # 每 2s 刷新至终态（SUCCESS/FAILED/CANCELLED/SKIPPED/TIMEOUT）
 gitee pipeline build list -R owner/repo --json --no-tui         # 构建历史（分页，可 --file/--ref/--status/--order/--sort）
 gitee pipeline build last -R owner/repo --file ci.yml --ref master --json --no-tui
-gitee pipeline build status 123 --json --no-tui
+gitee pipeline build status 123 -R owner/repo --json --no-tui
 ```
 **可用 flag：**
 | Flag | 类型 | 说明 |
@@ -132,8 +132,8 @@ gitee pipeline build status 123 --json --no-tui
 ### Step 4：取消 / 重新构建（build cancel / rebuild）— 副作用，需确认
 ```bash
 # 先确认再执行
-gitee pipeline build cancel 123 --no-tui
-gitee pipeline build rebuild 123 --json --no-tui
+gitee pipeline build cancel 123 -R owner/repo --no-tui
+gitee pipeline build rebuild 123 -R owner/repo --json --no-tui
 ```
 > ⚠️ `cancel`、`rebuild` 会改变运行状态，执行前必须向用户明确确认。
 ### Step 4.5：构建的阶段 / 任务运行操作（build stage / build job）— 副作用，需确认
@@ -370,7 +370,7 @@ gitee pipeline run -R autodeploy/java-maven-example --ref master --file ci.yml -
 
 # 查看最近一次构建与状态
 gitee pipeline build last -R autodeploy/java-maven-example --file ci.yml --ref master --json --no-tui
-gitee pipeline build view 123 --json --no-tui
+gitee pipeline build view 123 -R autodeploy/java-maven-example --json --no-tui
 
 # 插件：找 Maven 构建的类型，看参数，拉版本下拉
 gitee pipeline plugin list -R autodeploy/java-maven-example --json --no-tui
