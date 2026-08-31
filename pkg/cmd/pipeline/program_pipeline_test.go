@@ -443,19 +443,24 @@ func TestProgramPipelineHistoryApplyRequiresYes(t *testing.T) {
 	}
 }
 
-// TestProgramPipelineHistoryApplyYes asserts the happy apply path POSTs to
-// history/{id}/apply and prints the confirmation line.
+// TestProgramPipelineHistoryApplyYes asserts the apply flow first verifies the
+// history record belongs to the pipeline, then POSTs history/{id}/apply.
 func TestProgramPipelineHistoryApplyYes(t *testing.T) {
 	var mu sync.Mutex
-	var gotPaths []string
-	var gotMethod string
+	var gotRequests []string
 	f := newTestFactory(t, func(w http.ResponseWriter, r *http.Request) {
 		mu.Lock()
-		gotMethod = r.Method
-		gotPaths = append(gotPaths, r.URL.Path)
+		gotRequests = append(gotRequests, r.Method+" "+r.URL.Path)
 		mu.Unlock()
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(jsonBody(t, &giteego.PipelineVO{Identifier: "pipeline.ops.pipeline.706", Name: "build-all"}))
+		if r.Method == http.MethodGet && strings.HasSuffix(r.URL.Path, "/pipelines/706/history") {
+			_, _ = w.Write(jsonBody(t, giteego.PageVO[giteego.PipelineHistoryVO]{
+				Current: 1, PageSize: 100, Total: 1,
+				Data: []giteego.PipelineHistoryVO{{ID: 3, Version: 2}},
+			}))
+			return
+		}
+		_, _ = w.Write(jsonBody(t, &giteego.PipelineVO{Identifier: "pipeline.ops.pipeline.706", Name: "build-all"}))
 	}, nil)
 
 	out, _, err := runPipelineCmd(t, f, "program", "history-apply", "706", "-E", "2", "-P", "423", "--history", "3", "--yes")
@@ -467,11 +472,80 @@ func TestProgramPipelineHistoryApplyYes(t *testing.T) {
 	}
 	mu.Lock()
 	defer mu.Unlock()
-	if len(gotPaths) != 1 {
-		t.Fatalf("expected 1 request (no billing), got %v", gotPaths)
+	if len(gotRequests) != 2 {
+		t.Fatalf("expected ownership check + apply, got %v", gotRequests)
 	}
-	if gotMethod != http.MethodPost || !strings.Contains(gotPaths[0], "/2/423/gitee-go/ipipe/rest/v5/multi-source/pipelines/history/3/apply") {
-		t.Errorf("expected POST history/3/apply, method=%s path=%s", gotMethod, gotPaths[0])
+	if !strings.Contains(gotRequests[0], "GET /2/423/gitee-go/ipipe/rest/v5/multi-source/pipelines/706/history") {
+		t.Errorf("expected history ownership check first, got %s", gotRequests[0])
+	}
+	if !strings.Contains(gotRequests[1], "POST /2/423/gitee-go/ipipe/rest/v5/multi-source/pipelines/history/3/apply") {
+		t.Errorf("expected POST history/3/apply, got %s", gotRequests[1])
+	}
+}
+
+// TestProgramPipelineHistoryApplyRejectsForeignHistory asserts that a history
+// record absent from the pipeline's (fully scanned) history listing aborts
+// before the apply request.
+func TestProgramPipelineHistoryApplyRejectsForeignHistory(t *testing.T) {
+	var mu sync.Mutex
+	var gotRequests []string
+	f := newTestFactory(t, func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		gotRequests = append(gotRequests, r.Method+" "+r.URL.Path)
+		mu.Unlock()
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write(jsonBody(t, giteego.PageVO[giteego.PipelineHistoryVO]{
+			Current: 1, PageSize: 100, Total: 1,
+			Data: []giteego.PipelineHistoryVO{{ID: 9, Version: 1}},
+		}))
+	}, nil)
+
+	_, _, err := runPipelineCmd(t, f, "program", "history-apply", "706", "-E", "2", "-P", "423", "--history", "3", "--yes")
+	if err == nil || !strings.Contains(err.Error(), "does not belong to program pipeline 706") {
+		t.Errorf("expected ownership rejection, got %v", err)
+	}
+	mu.Lock()
+	defer mu.Unlock()
+	if len(gotRequests) != 1 {
+		t.Fatalf("expected only the history check, no apply, got %v", gotRequests)
+	}
+}
+
+// TestProgramPipelineHistoryApplyUnverifiedScanProceedsWithWarning asserts that
+// when the history listing is too deep to rule out ownership, the apply still
+// proceeds after a warning on stderr.
+func TestProgramPipelineHistoryApplyUnverifiedScanProceedsWithWarning(t *testing.T) {
+	var mu sync.Mutex
+	var applyCount int
+	f := newTestFactory(t, func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if r.Method == http.MethodPost {
+			mu.Lock()
+			applyCount++
+			mu.Unlock()
+			_, _ = w.Write(jsonBody(t, &giteego.PipelineVO{Name: "build-all"}))
+			return
+		}
+		data := make([]giteego.PipelineHistoryVO, 100)
+		for i := range data {
+			data[i] = giteego.PipelineHistoryVO{ID: int64(10000 + i)}
+		}
+		_, _ = w.Write(jsonBody(t, giteego.PageVO[giteego.PipelineHistoryVO]{
+			Current: 1, PageSize: 100, Total: 2050, Data: data,
+		}))
+	}, nil)
+
+	_, errOut, err := runPipelineCmd(t, f, "program", "history-apply", "706", "-E", "2", "-P", "423", "--history", "1500", "--yes")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(errOut, "could not confirm history 1500") {
+		t.Errorf("expected warning on stderr, got:\n%s", errOut)
+	}
+	mu.Lock()
+	defer mu.Unlock()
+	if applyCount != 1 {
+		t.Fatalf("expected apply to proceed, got %d", applyCount)
 	}
 }
 
