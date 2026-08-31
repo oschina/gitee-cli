@@ -52,7 +52,11 @@ func TestInstallListAndReinstall(t *testing.T) {
 	if err := json.Unmarshal([]byte(out), &result); err != nil {
 		t.Fatalf("decode install JSON: %v\n%s", err, out)
 	}
-	if len(result.Installed) != 6 {
+	expectNames, err := skillassets.Names()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(result.Installed) != len(expectNames) {
 		t.Fatalf("installed = %v", result.Installed)
 	}
 	if len(result.RemovedLegacy) != len(legacySkillNames) {
@@ -106,7 +110,7 @@ func TestInstallListAndReinstall(t *testing.T) {
 	if err := json.Unmarshal([]byte(out), &statuses); err != nil {
 		t.Fatal(err)
 	}
-	if len(statuses) != 6 {
+	if len(statuses) != len(expectNames) {
 		t.Fatalf("statuses = %v", statuses)
 	}
 	for _, status := range statuses {
@@ -164,7 +168,11 @@ func TestUninstallRemovesOnlyManagedSkills(t *testing.T) {
 	if err := json.Unmarshal([]byte(out), &result); err != nil {
 		t.Fatal(err)
 	}
-	if len(result.Removed) != 8 {
+	expectNames, err := skillassets.Names()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(result.Removed) != len(expectNames)+len(legacySkillNames) {
 		t.Fatalf("removed = %v", result.Removed)
 	}
 	if _, err := os.Stat(unrelated); err != nil {

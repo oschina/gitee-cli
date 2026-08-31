@@ -11,6 +11,7 @@ command and flag.
 - [Pull request branches](#pull-request-branches)
 - [AI workflows](#ai-workflows)
 - [Raw API requests](#raw-api-requests)
+- [Gitee Go pipelines](#gitee-go-pipelines)
 - [Configuration](#configuration)
 - [Reliability and debugging](#reliability-and-debugging)
 
@@ -335,10 +336,84 @@ standalone binaries are downloaded from the Gitee Release, verified with
 `checksums.txt`, and atomically replaced. Local npm dependencies must be
 updated by the project that owns them. The updater never invokes `sudo`.
 
+## Gitee Go Pipelines
+
+`gitee pipeline` manages gitee-go pipelines: repository (GitOps) pipelines
+(`build`/`job`/`stage`/`request`, scoped by `-R owner/repo`) and **program
+pipelines** (`program`), the project CI/CD pipelines of a program/enterprise
+(scoped by `-E <enterprise-id> -P <program-id>`).
+
+### Interactive creation wizard
+
+Running `gitee pipeline program create -E <id> -P <id>` without flags opens a
+form wizard in the terminal:
+
+1. **Pipeline name**, then repeatedly: a **stage name**, and for each stage one
+   or more **jobs**.
+2. For a job you pick a **plugin type** (fetched live), a **display name**, and
+   fill an interactive **parameter form rendered from the plugin scheme** — the
+   same field types as the Gitee Go web editor (Input/Password/Textarea/Select/
+   Radio/Checkbox/Switch/Command/RemoteSelect/Compose arrays, read-only notes,
+   and auto-resolved `RefValue` references).
+3. After each job/stage the wizard asks whether to **add another** — the
+   "done" choice is preselected, so pressing Enter always advances and never
+   traps you in a loop.
+4. Finally the full `PipelineRequest` JSON is printed with a choice:
+   **create now / edit the full JSON in `$EDITOR` / cancel**. Choosing the
+   editor prints save-and-exit hints (vim `:wq`, nano `Ctrl+X`→`y`, VS Code
+   save) before opening.
+
+**Saving fields**: each form field saves on Enter; the last field finishes the
+current job's parameters. Job identifiers are **not** collected on create —
+the backend assigns them (update keeps the backend-returned identifiers for
+kept jobs; the wizard never overwrites them).
+
+### Job data contract
+
+Job parameters follow the gitee-go data contract (the same shape the web
+editor submits, see `Converter.toFormGeneric`):
+
+```json
+{
+  "name": "compile",
+  "type": "JENKINS_JOB",
+  "data": {
+    "parameters": [
+      { "key": "certificate", "value": "{{certificate}}" },
+      { "key": "jobName", "value": "my-job" },
+      { "key": "params", "value": "{}" }
+    ]
+  }
+}
+```
+
+- Each scheme field becomes a `data.parameters` entry `{key, value}` keyed by
+  the scheme identifier, in scheme order — unless its `convertor.parameters`
+  is explicitly `false`, in which case it sits at `data.<identifier>`.
+- Values mirror the editor's serialization: `Switch` → `"true"/"false"`;
+  `Compose`/arrays/multi-selects → JSON strings; `Input` → trimmed string;
+  other scalars as-is. Nested children of `Compose` are embedded in the
+  parent's JSON string, never separate entries.
+
+Use `gitee pipeline program plugin scheme -E <id> -P <id> --type <jobType>`
+to inspect a plugin's fields and rules before creating. Non-interactive
+creation is intentional and explicit: pass the full JSON via `--config` /
+`--body -` (stdin).
+
+### Quota and permissions
+
+A gitee-go `429 insufficient_quota` (or 401/403) is reported immediately with
+an actionable hint instead of being retried or dumped as raw JSON — the
+condition is the account/enterprise's gitee-go plan quota, not a CLI bug. See
+[Reliability and debugging](#reliability-and-debugging).
+
 ## Reliability and Debugging
 
 Transient HTTP 429, 5xx, timeout, and network failures are retried with
-exponential backoff. Long-running operations can be cancelled with `Ctrl+C`.
+exponential backoff. Quota rejections are not transient: a gitee-go
+`insufficient_quota` (HTTP 429) response is reported immediately with an
+actionable hint instead of being retried. Long-running operations can be
+cancelled with `Ctrl+C`.
 
 Use `--verbose` or `-V` to inspect HTTP requests, retries, and rate limits:
 

@@ -222,3 +222,140 @@ func TestHostsFilePath(t *testing.T) {
 		t.Errorf("expected hosts.yml mode 0600, got %o", got)
 	}
 }
+
+func TestGoAPIBaseURL_noRepo(t *testing.T) {
+	t.Setenv("GITEE_CONFIG_DIR", t.TempDir())
+	t.Setenv("GITEE_GO_API_HOST", "")
+	if err := Load(); err != nil {
+		t.Fatal(err)
+	}
+	got := GoAPIBaseURL("gitee.com", "")
+	want := "https://go-api.gitee.com" + GoAPIBasePath
+	if got != want {
+		t.Errorf("expected %s, got %s", want, got)
+	}
+}
+
+func TestGoAPIBaseURL_withRepo(t *testing.T) {
+	t.Setenv("GITEE_CONFIG_DIR", t.TempDir())
+	t.Setenv("GITEE_GO_API_HOST", "")
+	if err := Load(); err != nil {
+		t.Fatal(err)
+	}
+	got := GoAPIBaseURL("gitee.com", "acme/gitee-go-plugin")
+	want := "https://go-api.gitee.com/acme/gitee-go-plugin" + GoAPIBasePath
+	if got != want {
+		t.Errorf("expected %s, got %s", want, got)
+	}
+}
+
+func TestGoAPIBaseURL_sameHostFallback(t *testing.T) {
+	t.Setenv("GITEE_CONFIG_DIR", t.TempDir())
+	t.Setenv("GITEE_GO_API_HOST", "")
+	if err := Load(); err != nil {
+		t.Fatal(err)
+	}
+	got := GoAPIBaseURL("git.company.com", "team/plugin")
+	want := "https://git.company.com/go-api/team/plugin" + GoAPIBasePath
+	if got != want {
+		t.Errorf("expected %s, got %s", want, got)
+	}
+}
+
+// premium/private deployment: host stays the Gitee host, /go-api fixed segment.
+func TestGoAPIBaseURL_premiumDeployment(t *testing.T) {
+	t.Setenv("GITEE_CONFIG_DIR", t.TempDir())
+	t.Setenv("GITEE_GO_API_HOST", "")
+	if err := Load(); err != nil {
+		t.Fatal(err)
+	}
+	got := GoAPIBaseURL("premium-k8s.gitee.cn", "autodeploy/gitee-go-pipeline")
+	want := "https://premium-k8s.gitee.cn/go-api/autodeploy/gitee-go-pipeline" + GoAPIBasePath
+	if got != want {
+		t.Errorf("expected %s, got %s", want, got)
+	}
+}
+
+func TestGoAPIBaseURL_explicitHostOverride(t *testing.T) {
+	t.Setenv("GITEE_CONFIG_DIR", t.TempDir())
+	t.Setenv("GITEE_GO_API_HOST", "")
+	if err := Load(); err != nil {
+		t.Fatal(err)
+	}
+	if err := Set(KeyGoAPIHost, "go.custom.example"); err != nil {
+		t.Fatal(err)
+	}
+	got := GoAPIBaseURL("git.company.com", "")
+	want := "https://go.custom.example" + GoAPIBasePath
+	if got != want {
+		t.Errorf("expected %s, got %s", want, got)
+	}
+}
+
+func TestGoAPIHost_runjsHost(t *testing.T) {
+	t.Setenv("GITEE_CONFIG_DIR", t.TempDir())
+	t.Setenv("GITEE_GO_API_HOST", "")
+	if err := Load(); err != nil {
+		t.Fatal(err)
+	}
+	got := GoAPIHost("xxx.runjs.cn")
+	want := LocalGoAPIHost
+	if got != want {
+		t.Errorf("expected %s, got %s", want, got)
+	}
+}
+
+func TestGoAPIHost_runjsHost_otherSubdomain(t *testing.T) {
+	t.Setenv("GITEE_CONFIG_DIR", t.TempDir())
+	t.Setenv("GITEE_GO_API_HOST", "")
+	if err := Load(); err != nil {
+		t.Fatal(err)
+	}
+	got := GoAPIHost("my-org.runjs.cn")
+	want := LocalGoAPIHost
+	if got != want {
+		t.Errorf("expected %s, got %s", want, got)
+	}
+}
+
+func TestGoAPIBaseURL_runjsHost_noRepo(t *testing.T) {
+	t.Setenv("GITEE_CONFIG_DIR", t.TempDir())
+	t.Setenv("GITEE_GO_API_HOST", "")
+	if err := Load(); err != nil {
+		t.Fatal(err)
+	}
+	got := GoAPIBaseURL("xxx.runjs.cn", "")
+	want := "https://local-pipe-api.runjs.cn" + GoAPIBasePath
+	if got != want {
+		t.Errorf("expected %s, got %s", want, got)
+	}
+}
+
+func TestGoAPIBaseURL_runjsHost_withRepo(t *testing.T) {
+	t.Setenv("GITEE_CONFIG_DIR", t.TempDir())
+	t.Setenv("GITEE_GO_API_HOST", "")
+	if err := Load(); err != nil {
+		t.Fatal(err)
+	}
+	got := GoAPIBaseURL("xxx.runjs.cn", "acme/gitee-go-plugin")
+	want := "https://local-pipe-api.runjs.cn/acme/gitee-go-plugin" + GoAPIBasePath
+	if got != want {
+		t.Errorf("expected %s, got %s", want, got)
+	}
+}
+
+func TestGoAPIBaseURL_runjsHost_explicitOverride(t *testing.T) {
+	t.Setenv("GITEE_CONFIG_DIR", t.TempDir())
+	t.Setenv("GITEE_GO_API_HOST", "")
+	if err := Load(); err != nil {
+		t.Fatal(err)
+	}
+	if err := Set(KeyGoAPIHost, "go.custom.example"); err != nil {
+		t.Fatal(err)
+	}
+	got := GoAPIBaseURL("xxx.runjs.cn", "team/plugin")
+	want := "https://go.custom.example/team/plugin" + GoAPIBasePath
+	if got != want {
+		t.Errorf("expected %s, got %s", want, got)
+	}
+}

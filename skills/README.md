@@ -15,7 +15,7 @@
 ```text
 请帮我安装 Gitee CLI Agent Skills：
 1. 运行 `gitee skills install`，把当前 Gitee CLI 内置的技能安装到 ~/.agents/skills/。
-2. 运行 `gitee skills list --json`，确认 gitee-pr、gitee-issue、gitee-release、gitee-repo、gitee-search、gitee-api 均为已安装状态。
+2. 运行 `gitee skills list --json`，确认 gitee-pr、gitee-issue、gitee-release、gitee-repo、gitee-search、gitee-api、gitee-go 均为已安装状态。
 3. 告诉我安装结果，并提示我重启 / 重新加载 Agent 以使技能生效。
 ```
 
@@ -27,7 +27,7 @@
 
 **Agent Skills** 是一种「渐进式披露 (progressive disclosure)」的能力包：每个技能是一个 `SKILL.md` 文件，包含 YAML frontmatter（`name` / `description` / 触发词）和正文操作手册。当用户的请求命中某个技能的触发词时，Agent 会加载该技能并按其中的步骤执行。
 
-本仓库提供 **6 个 Gitee CLI 技能**，覆盖官方 CLI 的核心能力面。每个技能都遵循同一套安全约定：
+本仓库提供 **7 个 Gitee CLI 技能**，覆盖官方 CLI 的核心能力面。每个技能都遵循同一套安全约定：
 
 - 所有命令强制 `--no-tui`（禁用交互式 TUI，避免 Agent 阻塞）；
 - 支持结构化输出的命令一律加 `--json`；
@@ -47,6 +47,7 @@
 | **gitee-repo** | 仓库全生命周期：查看 / 列出 / 克隆 / 创建 / fork / 删除（删除需确认）。 | "创建仓库"、"fork 这个仓库"、"克隆仓库"、"删除仓库"、"列出我的仓库" |
 | **gitee-search** | 全站搜索仓库 / issue / 用户，支持语言、owner、状态、标签等过滤。 | "搜索仓库"、"找一下 Go 的项目"、"搜 issue"、"搜索用户" |
 | **gitee-issue** | Issue 全生命周期：列出 / 查看 / 创建 / 编辑 / 评论 / 关闭 / 重开 / 指派 / 认领并创建工作分支。 | "看看 issue"、"提个 issue"、"评论 issue"、"关闭 issue"、"认领这个 issue" |
+| **gitee-go** | Gitee-Go 仓库流水线（GitOps）：流水线 YAML 列表/查看、触发构建、构建运行与阶段/任务、插件列表与 Scheme / 示例 YAML / 远端下拉请求。命令必须 `-R owner/repo`。触发/取消/重建运行需确认。 | "跑一下流水线"、"触发构建"、"看流水线"、"构建状态"、"插件 / 插件参数" |
 
 > 各技能 `description` 中标注了触发词与相互边界，Agent 依据用户措辞自动加载对应技能。
 
@@ -107,6 +108,7 @@ cp -R skills/gitee-api          ~/.agents/skills/
 cp -R skills/gitee-repo         ~/.agents/skills/
 cp -R skills/gitee-search       ~/.agents/skills/
 cp -R skills/gitee-issue        ~/.agents/skills/
+cp -R skills/gitee-go           ~/.agents/skills/
 ```
 
 安装后重启 / 重新加载 Agent 即可让技能生效。
@@ -138,7 +140,8 @@ gitee-cli/
     ├── gitee-api/SKILL.md
     ├── gitee-repo/SKILL.md
     ├── gitee-search/SKILL.md
-    └── gitee-issue/SKILL.md
+    ├── gitee-issue/SKILL.md
+    └── gitee-go/SKILL.md
 ```
 
 ---

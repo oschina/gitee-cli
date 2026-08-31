@@ -170,6 +170,7 @@ gitee auth logout
 | `alias` | `list`, `set`, `delete` | 管理命令别名 |
 | `ai` | `[prompt]`, `--chat` | 与 OpenAI 兼容模型对话 |
 | `api` | `<endpoint>` | 发起原始 API 请求 |
+| `pipeline` | `list`, `view`, `run`, `build`, `commit`, `plugin`, `request`, `program` | 管理 gitee-go 流水线（仓库 GitOps + 项目/企业） |
 | `version` | — | 显示版本信息 |
 | `completion` | `bash`, `zsh`, `fish`, `powershell` | 生成 Shell 补全脚本 |
 
@@ -212,6 +213,7 @@ README 只保留上手所需内容，详细用法集中在一份可按章节跳�
 | [Pull Request 本地分支](docs/usage_zh.md#pull-request-本地分支) | 如何选择 `pr checkout` 与 `pr fetch` |
 | [AI 工作流](docs/usage_zh.md#ai-工作流) | 服务配置、PR 与 Issue 辅助、对话和 Commit Message |
 | [原始 API 请求](docs/usage_zh.md#原始-api-请求) | 直接调用 Gitee V5 接口 |
+| [Gitee Go 流水线](docs/usage_zh.md#gitee-go-流水线) | 项目流水线向导、任务数据契约、额度处理 |
 | [配置](docs/usage_zh.md#配置) | 配置文件、键、主题、语言、编辑器与凭证 |
 | [稳定性与调试](docs/usage_zh.md#稳定性与调试) | 重试、取消、限额与详细诊断 |
 

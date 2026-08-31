@@ -1,0 +1,1 @@
+{"name":"quota-test","stages":[{"name":"build","jobs":[[{"name":"compile","identifier":"compile","type":"JENKINS_JOB","data":{"jobName":"x"}}]]}]}

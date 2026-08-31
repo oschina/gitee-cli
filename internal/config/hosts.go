@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/viper"
 )
@@ -113,4 +114,75 @@ func APIPrefixForHost(hostname string) string {
 		return hc.APIPrefix
 	}
 	return "https://" + hostname + "/api/v5"
+}
+
+// GoAPIHost returns the gitee-go API host for the given Gitee host.
+// Precedence: explicit config `go_api_host` > `gitee.com` special-case
+// (go-api.gitee.com) > `*.runjs.cn` special-case (local-pipe-api.runjs.cn)
+// > same host as the Gitee instance.
+func GoAPIHost(giteeHostname string) string {
+	if h, ok := isExplicitGoAPIHost(); ok {
+		return h
+	}
+	if giteeHostname == "" || giteeHostname == DefaultHost {
+		return DefaultGoAPIHost
+	}
+	if strings.HasSuffix(giteeHostname, ".runjs.cn") {
+		return LocalGoAPIHost
+	}
+	return giteeHostname
+}
+
+// GoAPIBaseURL returns the gitee-go gateway base URL for a repo path segment
+// (the resolved owner/repo) between the host and /gitee-go:
+//
+//	https://{go-api-host}/{pathBase}/gitee-go              (public gitee.com / explicit go_api_host / *.runjs.cn)
+//	https://{gitee-host}/go-api/{pathBase}/gitee-go        (premium/private: fixed /go-api segment)
+//
+// For the public gitee.com the host is already go-api.gitee.com, so no extra
+// /go-api path segment appears; for a non-gitee.com Gitee hostname the gateway
+// is reached via a fixed /go-api segment on the same host. An explicitly
+// configured go_api_host is used verbatim as the host (no /go-api segment).
+// The *.runjs.cn special-case resolves to local-pipe-api.runjs.cn (no /go-api
+// segment).
+// The service segment (ipipe, sa, ...) and its versioned path are appended by
+// the caller, since they differ per gitee-go service.
+func GoAPIBaseURL(giteeHostname, pathBase string) string {
+	host := GoAPIHost(giteeHostname)
+	// An explicitly configured go_api_host already points at a go-api host;
+	// the gitee.com and *.runjs.cn special-cases resolve to their go-api
+	// hosts. Only the same-host fallback (premium/private deployments) needs
+	// the fixed /go-api path segment.
+	_, explicit := isExplicitGoAPIHost()
+	if !explicit && host != DefaultGoAPIHost && host != LocalGoAPIHost {
+		// same-host fallback: route through /go-api on the Gitee host
+		return "https://" + host + "/go-api" + joinPath(pathBase) + GoAPIBasePath
+	}
+	return "https://" + host + joinPath(pathBase) + GoAPIBasePath
+}
+
+func joinPath(seg string) string {
+	if strings.Trim(seg, "/") == "" {
+		return ""
+	}
+	return "/" + strings.Trim(seg, "/")
+}
+
+func isExplicitGoAPIHost() (string, bool) {
+	h := viper.GetString(KeyGoAPIHost)
+	return h, h != ""
+}
+
+// GoAPIServiceURL returns a fully assembled go-api service prefix:
+//
+//	https://{go-api-host}/{pathBase}/gitee-go/{service}
+//
+// where pathBase is anything between the host and /gitee-go (repo, "sa", ...)
+// and service is the service segment (e.g. "/ipipe/rest/v5" or "/sa/rest/v2").
+func GoAPIServiceURL(giteeHostname, pathBase, service string) string {
+	base := GoAPIBaseURL(giteeHostname, pathBase)
+	if strings.Trim(service, "/") == "" {
+		return base
+	}
+	return base + "/" + strings.Trim(service, "/")
 }

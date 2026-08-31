@@ -38,6 +38,7 @@ Available configuration keys:
     host             Default Gitee hostname (default: gitee.com)
     api_prefix       API base URL (default: https://gitee.com/api/v5)
     api_swagger_url  OpenAPI spec URL (default: https://gitee.com/api/v5/swagger_doc.json)
+    go_api_host      gitee-go API hostname override (default: go-api.gitee.com for gitee.com, local-pipe-api.runjs.cn for *.runjs.cn, else the Gitee hostname)
 
   UPDATES
     update_check     Check for new releases at most once every 24 hours (true/false, default: true)

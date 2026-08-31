@@ -10,6 +10,7 @@
 - [Pull Request 本地分支](#pull-request-本地分支)
 - [AI 工作流](#ai-工作流)
 - [原始 API 请求](#原始-api-请求)
+- [Gitee Go 流水线](#gitee-go-流水线)
 - [配置](#配置)
 - [稳定性与调试](#稳定性与调试)
 
@@ -324,10 +325,73 @@ gitee update --yes         # 非交互更新
 Gitee Release 下载对应平台的附件，校验 `checksums.txt` 后原子替换。本地 npm
 依赖必须由所属项目更新，更新器不会调用 `sudo`。
 
+## Gitee Go 流水线
+
+`gitee pipeline` 管理 gitee-go 流水线：仓库流水线（GitOps，
+`build`/`job`/`stage`/`request`，通过 `-R owner/repo` 定位）和**项目流水线**
+（`program`，某个企业/项目的 CI/CD 流水线，通过 `-E <企业id> -P <项目id>` 定位）。
+
+### 交互式创建向导
+
+不加任何参数运行 `gitee pipeline program create -E <id> -P <id>`，会在终端打开
+表单向导：
+
+1. 先填**流水线名称**，然后反复填写：**阶段名称**，以及每个阶段的一个或多个**任务**。
+2. 每个任务需要选择**插件类型**（实时拉取插件列表）、填写**展示名称**，然后
+   填写**按插件 scheme 渲染的参数表单**——与 Gitee Go 网页端相同的控件类型
+   （Input/Password/Textarea/Select/Radio/Checkbox/Switch/Command/RemoteSelect/
+   Compose 数组、只读说明文本、以及自动解析的 `RefValue` 引用）。
+3. 每个任务/阶段结束后会询问是否**继续添加**——“完成”选项是默认选中的，
+   直接回车即可推进，绝不会被困在循环里。
+4. 最后打印完整的 `PipelineRequest` JSON，并让您选择：**立即创建 /
+   在 `$EDITOR` 中修改完整 JSON / 取消**。选择编辑器时会先打印保存退出提示
+   （vim 输入 `:wq`、nano 按 `Ctrl+X` 再按 `y`、VS Code 保存后关标签），再打开编辑器。
+
+**保存方式**：每个字段填写后按回车即保存，最后一个字段回车即完成当前任务的参数。
+创建时**不收集任务标识**——由后端自动补充（更新时保留后端返回的标识给未删除的任务，
+向导绝不覆盖它）。
+
+### 任务数据契约
+
+任务参数遵循 gitee-go 的数据契约（与网页端提交的形状一致，即前端的
+`Converter.toFormGeneric`）：
+
+```json
+{
+  "name": "compile",
+  "type": "JENKINS_JOB",
+  "data": {
+    "parameters": [
+      { "key": "certificate", "value": "{{certificate}}" },
+      { "key": "jobName", "value": "my-job" },
+      { "key": "params", "value": "{}" }
+    ]
+  }
+}
+```
+
+- scheme 中的每个字段按顺序生成一条 `data.parameters` 条目 `{key, value}`，
+  key 为 scheme 标识符；除非其 `convertor.parameters` 显式为 `false`——
+  这种情况放在顶层 `data.<identifier>`。
+- 值序列化与网页端一致：`Switch` → `"true"/"false"` 字符串；`Compose`/数组/
+  多选 → JSON 字符串；`Input` → 去首尾空格后的字符串；其它标量原样。
+  `Compose` 的子字段嵌入父级 JSON 字符串中，绝不生成独立条目。
+
+创建前可用 `gitee pipeline program plugin scheme -E <id> -P <id> --type <jobType>`
+查看插件的字段与校验规则。非交互创建是显式的：通过 `--config` / `--body -`（标准输入）
+传入完整 JSON。
+
+### 额度与权限
+
+gitee-go 返回 `429 insufficient_quota`（或 401/403）时会立即报错并附带可操作提示，
+不会重试也不会倾倒原始 JSON——这类错误源于账号/企业套餐的 gitee-go 额度，不是 CLI 的
+缺陷。详见[稳定性与调试](#稳定性与调试)。
+
 ## 稳定性与调试
 
-HTTP 429、5xx、超时和临时网络错误会通过指数退避自动重试。长时间运行的操作可
-通过 `Ctrl+C` 取消。
+HTTP 429、5xx、超时和临时网络错误会通过指数退避自动重试。额度类拒绝不属于临时错误：
+gitee-go 返回 `insufficient_quota`（HTTP 429）时立即报错并给出可操作的提示，不再重试。
+长时间运行的操作可通过 `Ctrl+C` 取消。
 
 使用 `--verbose` 或 `-V` 查看 HTTP 请求、重试和限额信息：
 
