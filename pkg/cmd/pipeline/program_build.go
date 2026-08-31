@@ -144,6 +144,12 @@ func newPipelineProgramBuildListCmd(f *cmdutil.Factory) *cobra.Command {
 		Example: `  gitee pipeline program build list --pipeline 706 -E 2 -P 423
   gitee pipeline program build list --pipeline 706 -E 2 -P 423 --status FAILED --json`,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if current < 1 {
+				return fmt.Errorf("--page must be at least 1")
+			}
+			if pageSize < 1 {
+				return fmt.Errorf("--page-size must be at least 1")
+			}
 			id, err := pipelineFlagID(cmd)
 			if err != nil {
 				return err
@@ -202,7 +208,7 @@ func newPipelineProgramBuildListCmd(f *cmdutil.Factory) *cobra.Command {
 			if err := cmdutil.WriteTableBordered(f.IOStreams.Out, rows); err != nil {
 				return err
 			}
-			if page.Total > 0 {
+			if page.Total > 0 && page.PageSize > 0 {
 				totalPages := (page.Total + page.PageSize - 1) / page.PageSize
 				fmt.Fprintf(f.IOStreams.Out, "\npage %d/%d (pageSize %d, total %d)\n", page.Current, totalPages, page.PageSize, page.Total)
 			}
