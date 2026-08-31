@@ -5,6 +5,39 @@ format follows Keep a Changelog, and releases use Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-08-31
+
+### Added
+
+- Add the `gitee pipeline` command group for Gitee Go pipelines: `list`,
+  `view`, `run`, `build`, `commit`, `plugin`, `request`, and `program`,
+  covering repository GitOps workflows as well as program-level and
+  enterprise-level pipelines.
+- Bundle pipeline-authoring guidance into the shipped Agent Skills with
+  top-level rules for generating and assembling pipelines, side-effect
+  confirmation tiers, and required `-R owner/repo` targeting in examples.
+
+### Fixed
+
+- Internationalize hardcoded Chinese strings in `gitee ai --chat`, including
+  exit and greeting messages, so the interface follows the configured locale.
+- Reject invalid `--page` and `--page-size` values before `pipeline build
+  list` paging arithmetic.
+- Verify history ownership before applying a program pipeline change.
+- Correct the program build identifier and harden pipeline JSON decoding.
+- Fix the zh argument order in the `pipeline commit` confirmation prompt.
+
+## [0.2.3] - 2026-08-11
+
+### Changed
+
+- Auto-select the authenticated private Gitee host as the default when no
+  `gitee.com` credential is configured, keeping `--hostname` unnecessary;
+  logging in to a private instance makes it the default, and logging out
+  restores `gitee.com`.
+
+## [0.2.2] - 2026-08-11
+
 ### Added
 
 - Add `gitee pr edit` and `gitee release edit` with non-interactive field
@@ -25,6 +58,19 @@ format follows Keep a Changelog, and releases use Semantic Versioning.
 - Resolve and send the repository default branch when `gitee release create`
   is used without `--target`.
 - Preserve omitted Issue fields instead of serializing unintended defaults.
+
+## [0.2.1] - 2026-08-10
+
+### Added
+
+- Offline `curl` install script (`scripts/install.sh`) for macOS and Linux
+  with platform detection, SHA-256 checksum verification, version pinning,
+  and custom install directories.
+
+### Fixed
+
+- Quote alias help examples with single quotes so `$1` and `$(...)` are not
+  expanded by the shell.
 
 ## [0.2.0] - 2026-08-09
 
