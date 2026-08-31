@@ -306,3 +306,29 @@ func TestProgramBuildMissingArg(t *testing.T) {
 		t.Errorf("expected cobra arity error, got %v", err)
 	}
 }
+
+func TestProgramBuildListRejectsInvalidPaging(t *testing.T) {
+	var mu sync.Mutex
+	var reqCount int
+	f := newTestFactory(t, func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		reqCount++
+		mu.Unlock()
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write(jsonBody(t, "ok"))
+	}, nil)
+
+	_, _, err := runPipelineCmd(t, f, "program", "build", "list", "--pipeline", "706", "-E", "2", "-P", "423", "--page-size", "0")
+	if err == nil || !strings.Contains(err.Error(), "--page-size must be at least 1") {
+		t.Errorf("expected page-size error, got %v", err)
+	}
+	_, _, err = runPipelineCmd(t, f, "program", "build", "list", "--pipeline", "706", "-E", "2", "-P", "423", "--page", "0")
+	if err == nil || !strings.Contains(err.Error(), "--page must be at least 1") {
+		t.Errorf("expected page error, got %v", err)
+	}
+	mu.Lock()
+	defer mu.Unlock()
+	if reqCount != 0 {
+		t.Fatalf("expected no request before validation, got %d", reqCount)
+	}
+}
