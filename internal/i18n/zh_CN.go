@@ -238,6 +238,8 @@ var zhCN = map[string]string{
 	"pipeline.open_not_enabled":     "gitee-go 尚未为 %s/%s 开通",
 	"pipeline.open_not_enabled_url": "gitee-go 尚未为 %s/%s 开通，请到 gitee-go 页面自行开通：%s",
 
-	"pipeline.commit.confirm": "将流水线 YAML %q 提交到 %s 的 %q 分支？",
+	// Positional verbs: call site passes (fileName, ref, owner/repo) in that
+	// order (see pkg/cmd/pipeline/commit.go); zh word order swaps repo/branch.
+	"pipeline.commit.confirm": "将流水线 YAML %[1]q 提交到 %[3]s 的 %[2]q 分支？",
 	"pipeline.commit.done":    "流水线 YAML 已提交",
 }
