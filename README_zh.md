@@ -190,8 +190,9 @@ gitee api /repos/owner/repo/pulls --hostname gitee.com
 
 ## Agent Skills
 
-每个 Gitee CLI 版本都内置六个面向安全、非交互式 Gitee 工作流的 Agent Skills：
-`gitee-pr`、`gitee-issue`、`gitee-release`、`gitee-repo`、`gitee-search` 和 `gitee-api`。
+每个 Gitee CLI 版本都内置七个面向安全、非交互式 Gitee 工作流的 Agent Skills：
+`gitee-pr`、`gitee-issue`、`gitee-release`、`gitee-repo`、`gitee-search`、`gitee-api`
+和 `gitee-go`。
 无需联网即可安装或更新：
 
 ```bash

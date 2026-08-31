@@ -192,9 +192,10 @@ covering scripts, CI, aliases, and raw endpoints, see the
 
 ## Agent Skills
 
-Every Gitee CLI release embeds six Agent Skills for safe, non-interactive
+Every Gitee CLI release embeds seven Agent Skills for safe, non-interactive
 workflows: `gitee-pr`, `gitee-issue`, `gitee-release`, `gitee-repo`,
-`gitee-search`, and `gitee-api`. Install or update them offline with:
+`gitee-search`, `gitee-api`, and `gitee-go`. Install or update them offline
+with:
 
 ```bash
 gitee skills install

@@ -77,7 +77,7 @@ skills-check:
 		grep -q '^description:' "$$file" || { echo "Missing description: $$file" >&2; exit 1; }; \
 		count=$$((count + 1)); \
 	done; \
-	[ "$$count" -eq 6 ] || { echo "Expected 6 skills, found $$count" >&2; exit 1; }
+	[ "$$count" -eq 7 ] || { echo "Expected 7 skills, found $$count" >&2; exit 1; }
 	@if grep -Enr '^[[:space:]]*gitee .*--ai' skills/*/SKILL.md; then \
 		echo "Executable gitee --ai command found in skills" >&2; \
 		exit 1; \
