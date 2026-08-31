@@ -1,6 +1,7 @@
 package pipeline
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -1675,6 +1676,36 @@ func newPipelineProgramHistoryCmd(f *cmdutil.Factory) *cobra.Command {
 	return cmd
 }
 
+// programHistoryScan* bound the ownership pre-check below.
+const (
+	programHistoryScanPages = 20
+	programHistoryScanSize  = 100
+)
+
+// programPipelineOwnsHistory checks historyID against pipelineID's history
+// listing before an apply. The apply endpoint is scoped by history id alone,
+// so without this check a mismatched --history would silently reconfigure
+// whichever pipeline really owns that record. Beyond the scan window the
+// listing cannot rule out ownership and conclusive is false, leaving the
+// decision to the caller.
+func programPipelineOwnsHistory(ctx context.Context, client *giteego.Client, pipelineID, historyID int64) (owned, conclusive bool, err error) {
+	for cur := 1; cur <= programHistoryScanPages; cur++ {
+		page, err := client.ListProgramPipelineHistory(ctx, pipelineID, cur, programHistoryScanSize)
+		if err != nil {
+			return false, true, err
+		}
+		for i := range page.Data {
+			if page.Data[i].ID == historyID {
+				return true, true, nil
+			}
+		}
+		if len(page.Data) == 0 || cur*programHistoryScanSize >= page.Total {
+			return false, true, nil
+		}
+	}
+	return false, false, nil
+}
+
 func newPipelineProgramHistoryApplyCmd(f *cmdutil.Factory) *cobra.Command {
 	var historyID int64
 	var yes bool
@@ -1706,12 +1737,26 @@ func newPipelineProgramHistoryApplyCmd(f *cmdutil.Factory) *cobra.Command {
 					return nil
 				}
 			}
+			owned, conclusive, err := programPipelineOwnsHistory(f.Context, client, id, historyID)
+			if err != nil {
+				return fmt.Errorf("failed to verify history %d of program pipeline %d: %w", historyID, id, err)
+			}
+			if conclusive && !owned {
+				return fmt.Errorf("history %d does not belong to program pipeline %d; refusing to apply (see 'gitee pipeline program history %d')", historyID, id, id)
+			}
+			if !conclusive {
+				fmt.Fprintf(f.IOStreams.ErrOut, "warning: pipeline %d history exceeds %d versions; could not confirm history %d belongs to it\n", id, programHistoryScanPages*programHistoryScanSize, historyID)
+			}
 			p, err := client.ApplyProgramPipelineHistory(f.Context, historyID)
 			if err != nil {
 				return fmt.Errorf("failed to apply history version: %w", err)
 			}
 			if jsonFields != "" {
 				return cmdutil.WriteJSON(f.IOStreams.Out, p)
+			}
+			if p == nil {
+				fmt.Fprintf(f.IOStreams.Out, "Applied history %d to program pipeline %d\n", historyID, id)
+				return nil
 			}
 			fmt.Fprintf(f.IOStreams.Out, "Applied history %d to program pipeline %d (%s)\n", historyID, id, p.Name)
 			return nil
