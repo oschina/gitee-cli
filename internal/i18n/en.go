@@ -159,11 +159,11 @@ var en = map[string]string{
 	"do.edit_prompt":         "  📝 Edit command: ",
 
 	// ai
-	"ai.usage_hint":    "Please enter a question, e.g.: gitee ai \"What is a Pull Request\"",
-	"ai.chat_welcome":  "Hello, I'm Gitee CLI AI assistant. Ask me anything (type exit to quit)",
-	"ai.chat_bye":      "Bye, See you next time!",
-	"ai.chat_error":    "Request failed: %v",
-	"ai.chat_exit":     "Bye",
+	"ai.usage_hint":   "Please enter a question, e.g.: gitee ai \"What is a Pull Request\"",
+	"ai.chat_welcome": "Hello, I'm Gitee CLI AI assistant. Ask me anything (type exit to quit)",
+	"ai.chat_bye":     "Bye, See you next time!",
+	"ai.chat_error":   "Request failed: %v",
+	"ai.chat_exit":    "Bye",
 
 	// form.release
 	"form.release.tag":        "Tag",

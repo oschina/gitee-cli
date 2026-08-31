@@ -41,10 +41,10 @@ const (
 	// GoAPIBasePath is the gitee-go gateway path segment fixed across all
 	// gitee-go services; the service (e.g. ipipe, sa) and its versioned path
 	// follow it per call.
-	GoAPIBasePath = "/gitee-go"
-	DefaultAIModel  = "gpt-4o-mini"
-	DefaultTheme    = "default"
-	RedactedValue   = "<redacted>"
+	GoAPIBasePath  = "/gitee-go"
+	DefaultAIModel = "gpt-4o-mini"
+	DefaultTheme   = "default"
+	RedactedValue  = "<redacted>"
 )
 
 type credentialFile struct {
