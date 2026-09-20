@@ -5,6 +5,29 @@ format follows Keep a Changelog, and releases use Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-09-20
+
+### Added
+
+- Add a Gitee CLI usage guide covering installation, authentication, command
+  discovery, common workflows, and the bundled Agent Skills.
+- Document JSON field selection (`--json=field1,field2`, `--json=list`) and
+  note that PowerShell must quote the `--json` value.
+
+### Fixed
+
+- Resolve enterprise three-segment project-group repositories
+  (`<ent>/<group>/<repo>`) in `issue create`, `edit`, `close`, `reopen`, and
+  `assign` by splitting owner/repo at the last slash; read commands and
+  `pr create` are unchanged.
+- Parse git remote URLs that carry userinfo (`https://user@host/...`) and
+  enterprise three-segment paths over both HTTPS and SSH.
+- Fail instead of silently succeeding when Gitee returns an error envelope
+  (`base`, `messages`, or `message`) with a 2xx status; the command now exits
+  non-zero and surfaces the message.
+- Stop falling back to `default_repo` when a repository has remotes that
+  cannot be parsed, and report the unparseable URLs with credentials redacted.
+
 ## [0.3.0] - 2026-08-31
 
 ### Added
