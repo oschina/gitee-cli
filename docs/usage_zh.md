@@ -36,13 +36,28 @@ gitee pr view "$PR_NUMBER" -R owner/repo --json
 gitee api /user --hostname git.company.com
 ```
 
+### JSON 字段选择
+
+`--json` 支持逗号分隔的字段列表，嵌套字段用点号表示：
+
+```bash
+gitee repo view owner/repo --json=full_name,path
+gitee pr view 42 -R owner/repo --json=number,title,head.ref,base.ref
+```
+
+执行 `--json=list`（或 `--json=fields`）可查看命令支持的字段；不存在的字段会被忽略。
+
+> **PowerShell：** 请给值加引号。PowerShell 会把裸逗号当作数组分隔符，
+> `--json=full_name,path` 不会选中任何字段并输出 `{}`；应写成
+> `--json="full_name,path"`。
+
 ### 常用参数
 
 | 参数 | 范围 | 说明 |
 |---|---|---|
 | `--hostname <host>` | 所有命令 | 选择 Gitee Host，默认使用已配置或唯一已认证的 Host。 |
 | `-R, --repo <owner/repo>` | PR 与 Issue 命令 | 覆盖从 git remote 推断的仓库。 |
-| `-j, --json` | 支持的列表和查看命令 | 输出结构化 JSON。 |
+| `-j, --json` | 支持的列表和查看命令 | 输出结构化 JSON；可用 `--json=field1,field2` 选择字段。 |
 | `--no-tui` | 所有命令 | 单次禁用交互式 TUI。 |
 | `-q, --quiet` | 所有命令 | 除错误外不输出其他内容。 |
 | `-V, --verbose` | 所有命令 | 显示请求、重试和限额诊断信息。 |

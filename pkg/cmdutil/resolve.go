@@ -1,8 +1,7 @@
 package cmdutil
 
 import (
-	"fmt"
-	"strings"
+	"errors"
 
 	"github.com/spf13/cobra"
 
@@ -21,6 +20,13 @@ func ResolveRepo(cmd *cobra.Command) (owner, repo string, err error) {
 		return owner, repo, nil
 	}
 
+	// Remotes that exist but cannot be parsed mean the repository was spelled
+	// in a way we do not understand. Falling back to default_repo here would
+	// silently run the command against an unrelated repository.
+	if errors.Is(err, git.ErrUnparseableRemote) {
+		return "", "", err
+	}
+
 	defaultRepo := config.DefaultRepo()
 	if defaultRepo != "" {
 		return ParseOwnerRepo(defaultRepo)
@@ -30,9 +36,5 @@ func ResolveRepo(cmd *cobra.Command) (owner, repo string, err error) {
 }
 
 func ParseOwnerRepo(s string) (owner, repo string, err error) {
-	parts := strings.SplitN(s, "/", 2)
-	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
-		return "", "", fmt.Errorf("invalid format %q, expected owner/repo", s)
-	}
-	return parts[0], parts[1], nil
+	return git.SplitRepoPath(s)
 }

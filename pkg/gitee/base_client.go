@@ -176,10 +176,23 @@ func (b *baseClient) do(req *http.Request, v interface{}) error {
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
 		return parseErrorResponse(resp)
 	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("gitee: read response: %w", err)
+	}
+
+	if err := apiErrorEnvelope(body, resp.StatusCode); err != nil {
+		return err
+	}
+
 	if v == nil || resp.StatusCode == http.StatusNoContent {
 		return nil
 	}
-	if err := json.NewDecoder(resp.Body).Decode(v); err != nil {
+	if len(bytes.TrimSpace(body)) == 0 {
+		return fmt.Errorf("gitee: decode response: empty body")
+	}
+	if err := json.Unmarshal(body, v); err != nil {
 		return fmt.Errorf("gitee: decode response: %w", err)
 	}
 	return nil

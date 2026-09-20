@@ -38,13 +38,30 @@ gitee pr view "$PR_NUMBER" -R owner/repo --json
 gitee api /user --hostname git.company.com
 ```
 
+### JSON Field Selection
+
+`--json` accepts a comma-separated list of fields, and nested fields use dot
+notation:
+
+```bash
+gitee repo view owner/repo --json=full_name,path
+gitee pr view 42 -R owner/repo --json=number,title,head.ref,base.ref
+```
+
+Run `--json=list` (or `--json=fields`) to print the fields a command supports.
+Unknown field names are skipped silently.
+
+> **PowerShell:** quote the value. PowerShell treats a bare comma as an array
+> separator, so `--json=full_name,path` does not select any fields and prints
+> `{}`. Write `--json="full_name,path"` instead.
+
 ### Common Flags
 
 | Flag | Scope | Description |
 |---|---|---|
 | `--hostname <host>` | all commands | Select a Gitee host; defaults to the configured or only authenticated host. |
 | `-R, --repo <owner/repo>` | PR and issue commands | Override repository inference from the git remote. |
-| `-j, --json` | supported list and view commands | Emit structured JSON. |
+| `-j, --json` | supported list and view commands | Emit structured JSON; use `--json=field1,field2` to select fields. |
 | `--no-tui` | all commands | Disable interactive TUI mode for one command. |
 | `-q, --quiet` | all commands | Suppress output except errors. |
 | `-V, --verbose` | all commands | Show request, retry, and rate-limit diagnostics. |

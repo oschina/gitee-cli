@@ -1,13 +1,35 @@
 package git
 
 import (
+	"errors"
 	"fmt"
 	"os/exec"
 	"regexp"
 	"strings"
 )
 
-var remoteURLPattern = regexp.MustCompile(`(?:https?://|git@)([a-zA-Z0-9.-]+)[:/]([^/]+/[^/]+?)(?:\.git)?$`)
+// remoteURLPattern matches the git remote URL forms Gitee supports and
+// captures the host and the repository path.
+//
+// Supported forms:
+//
+//	https://gitee.com/<owner>/<repo>.git
+//	https://<user>@gitee.com/<owner>/<repo>.git   (userinfo is ignored)
+//	git@gitee.com:<owner>/<repo>.git
+//	git@gitee.com:<ent>/<group>/<repo>.git        (multi-segment namespace)
+//
+// The repository path accepts any number of "/" separated segments so that
+// enterprise "project group" repositories (<ent>/<group>/<repo>) are
+// recognised as well.
+var remoteURLPattern = regexp.MustCompile(`(?:https?://|git@)(?:[^@/]+@)?([a-zA-Z0-9.-]+)[:/](.+?)(?:\.git)?$`)
+
+// ErrNotGitRepo reports that the current directory is not inside a git
+// repository (or git is unavailable).
+var ErrNotGitRepo = errors.New("not a git repository (or git is not installed)")
+
+// ErrUnparseableRemote reports that the repository has git remotes, but none
+// of their URLs could be parsed into an owner/repository pair.
+var ErrUnparseableRemote = errors.New("could not parse owner/repo from git remote")
 
 type Remote struct {
 	Name string
@@ -18,28 +40,45 @@ type Remote struct {
 func GiteeRemotes() ([]Remote, error) {
 	out, err := exec.Command("git", "remote", "-v").Output()
 	if err != nil {
-		return nil, fmt.Errorf("not a git repo or git not found: %w", err)
+		return nil, fmt.Errorf("%w: %v", ErrNotGitRepo, err)
 	}
 
-	seen := map[string]bool{}
+	seenRemote := map[string]bool{}
+	seenUnparsed := map[string]bool{}
 	var remotes []Remote
+	var unparsed []string
+	recordUnparsed := func(url string) {
+		if seenUnparsed[url] {
+			return
+		}
+		seenUnparsed[url] = true
+		unparsed = append(unparsed, redactRemoteURL(url))
+	}
 	for _, line := range strings.Split(strings.TrimSpace(string(out)), "\n") {
 		fields := strings.Fields(line)
 		if len(fields) < 2 {
 			continue
 		}
 		name, url := fields[0], fields[1]
+		if seenRemote[name] {
+			continue
+		}
 		m := remoteURLPattern.FindStringSubmatch(url)
 		if m == nil {
+			recordUnparsed(url)
 			continue
 		}
-		if seen[name] {
+		if _, _, err := SplitRepoPath(m[2]); err != nil {
+			recordUnparsed(url)
 			continue
 		}
-		seen[name] = true
+		seenRemote[name] = true
 		remotes = append(remotes, Remote{Name: name, URL: url, Host: m[1]})
 	}
 	if len(remotes) == 0 {
+		if len(unparsed) > 0 {
+			return nil, fmt.Errorf("%w: %s", ErrUnparseableRemote, strings.Join(unparsed, ", "))
+		}
 		return nil, fmt.Errorf("no git remote found in this repository")
 	}
 	return remotes, nil
@@ -69,11 +108,42 @@ func parseRemoteURL(rawURL string) (owner, repo string, err error) {
 	if m == nil {
 		return "", "", fmt.Errorf("cannot parse owner/repo from remote URL %q", rawURL)
 	}
-	parts := strings.SplitN(m[2], "/", 2)
-	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
-		return "", "", fmt.Errorf("cannot parse owner/repo from remote URL %q", rawURL)
+	return SplitRepoPath(m[2])
+}
+
+// SplitRepoPath splits an owner/repository path into its owner and repository
+// parts. The repository is the last "/" separated segment; everything before
+// it is the owner. This keeps enterprise three-segment paths
+// (<ent>/<group>/<repo>) consistent across every API call: read endpoints
+// rebuild "<owner>/<repo>" while create endpoints pass the multi-segment
+// "<owner>" as the namespace and "<repo>" as the repository field.
+func SplitRepoPath(s string) (owner, repo string, err error) {
+	path := strings.Trim(s, "/")
+	idx := strings.LastIndex(path, "/")
+	if idx <= 0 || idx == len(path)-1 {
+		return "", "", fmt.Errorf("invalid format %q, expected owner/repo", s)
 	}
-	return parts[0], parts[1], nil
+	return path[:idx], path[idx+1:], nil
+}
+
+// redactRemoteURL strips credentials from the userinfo portion of an HTTP(S)
+// remote URL so that unparseable URLs echoed in error messages cannot leak
+// embedded tokens. The SCP-style "git@host:path" form is left untouched
+// because "git" there is a protocol username, not a secret.
+func redactRemoteURL(rawURL string) string {
+	i := strings.Index(rawURL, "://")
+	if i < 0 {
+		return rawURL
+	}
+	rest := rawURL[i+3:]
+	at := strings.Index(rest, "@")
+	if at < 0 {
+		return rawURL
+	}
+	if slash := strings.Index(rest, "/"); slash >= 0 && slash < at {
+		return rawURL
+	}
+	return rawURL[:i+3] + "***@" + rest[at+1:]
 }
 
 func DefaultBranch(remote string) string {

@@ -107,6 +107,65 @@ func TestUpdateIssue_correctEndpoint(t *testing.T) {
 	}
 }
 
+func TestCreateIssue_threeSegmentOwner(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/repos/ent/group/issues" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		var params CreateIssueParams
+		json.NewDecoder(r.Body).Decode(&params)
+		if params.Repo != "repo" {
+			t.Errorf("expected repo=repo in body, got %q", params.Repo)
+		}
+		w.WriteHeader(http.StatusCreated)
+		json.NewEncoder(w).Encode(Issue{Number: "IKHAVP"})
+	}))
+	defer srv.Close()
+
+	c := NewClient("tok", WithBaseURL(srv.URL))
+	got, err := c.CreateIssue(context.Background(), "ent/group", "repo", &CreateIssueParams{Title: "t"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.Number != "IKHAVP" {
+		t.Errorf("unexpected issue: %+v", got)
+	}
+}
+
+func TestUpdateIssue_threeSegmentOwner(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/repos/ent/group/issues/IKHAVP" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		var params UpdateIssueParams
+		json.NewDecoder(r.Body).Decode(&params)
+		if params.Repo != "repo" {
+			t.Errorf("expected repo=repo in body, got %q", params.Repo)
+		}
+		json.NewEncoder(w).Encode(Issue{Number: "IKHAVP"})
+	}))
+	defer srv.Close()
+
+	c := NewClient("tok", WithBaseURL(srv.URL))
+	if _, err := c.UpdateIssue(context.Background(), "ent/group", "repo", "IKHAVP", &UpdateIssueParams{State: "closed"}); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestCreateIssue_propagatesErrorEnvelope(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string][]string{"base": {"account must enable 2FA"}})
+	}))
+	defer srv.Close()
+
+	c := NewClient("tok", WithBaseURL(srv.URL))
+	_, err := c.CreateIssue(context.Background(), "owner", "repo", &CreateIssueParams{Title: "t"})
+	if err == nil {
+		t.Fatal("expected error for 2xx body carrying an error envelope")
+	}
+}
+
 func TestListRepoIssues_withFilters(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		q := r.URL.Query()

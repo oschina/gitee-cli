@@ -94,6 +94,135 @@ func TestDo_noContent(t *testing.T) {
 	}
 }
 
+func TestDo_errorEnvelopeWith2xxBase(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string][]string{"base": {"2FA required"}})
+	}))
+	defer srv.Close()
+
+	c := NewClient("tok", WithBaseURL(srv.URL))
+	req, _ := c.newRequest(context.Background(), http.MethodPost, "/repos/o/issues", nil, nil)
+	var out Issue
+	err := c.do(req, &out)
+	apiErr, ok := err.(*ErrorResponse)
+	if !ok {
+		t.Fatalf("expected *ErrorResponse, got %T (%v)", err, err)
+	}
+	if apiErr.StatusCode != http.StatusOK || apiErr.Message != "2FA required" {
+		t.Fatalf("unexpected error: %+v", apiErr)
+	}
+	if out.Number != "" {
+		t.Fatalf("expected zero-value result, got %+v", out)
+	}
+}
+
+func TestDo_errorEnvelopeWith2xxMessages(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string][]string{"messages": {"repo is invalid"}})
+	}))
+	defer srv.Close()
+
+	c := NewClient("tok", WithBaseURL(srv.URL))
+	req, _ := c.newRequest(context.Background(), http.MethodPost, "/repos/o/issues", nil, nil)
+	err := c.do(req, &Issue{})
+	apiErr, ok := err.(*ErrorResponse)
+	if !ok {
+		t.Fatalf("expected *ErrorResponse, got %T", err)
+	}
+	if apiErr.Message != "repo is invalid" {
+		t.Fatalf("unexpected message: %q", apiErr.Message)
+	}
+}
+
+func TestDo_errorEnvelopeWith2xxMessage(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]string{"message": "2FA required"})
+	}))
+	defer srv.Close()
+
+	c := NewClient("tok", WithBaseURL(srv.URL))
+	req, _ := c.newRequest(context.Background(), http.MethodPost, "/repos/o/issues", nil, nil)
+	err := c.do(req, &Issue{})
+	apiErr, ok := err.(*ErrorResponse)
+	if !ok {
+		t.Fatalf("expected *ErrorResponse, got %T (%v)", err, err)
+	}
+	if apiErr.Message != "2FA required" {
+		t.Fatalf("unexpected message: %q", apiErr.Message)
+	}
+}
+
+func TestDo_emptyBodyWithTargetErrors(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer srv.Close()
+
+	c := NewClient("tok", WithBaseURL(srv.URL))
+	req, _ := c.newRequest(context.Background(), http.MethodGet, "/repos/o", nil, nil)
+	var out Issue
+	if err := c.do(req, &out); err == nil {
+		t.Fatal("expected error for empty 2xx body when a decode target is provided")
+	}
+}
+
+func TestDo_emptyBodyWithNilTargetIsOK(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer srv.Close()
+
+	c := NewClient("tok", WithBaseURL(srv.URL))
+	req, _ := c.newRequest(context.Background(), http.MethodDelete, "/repos/o", nil, nil)
+	if err := c.do(req, nil); err != nil {
+		t.Fatalf("empty 2xx body with nil target should not error: %v", err)
+	}
+}
+
+func TestDo_successWithBaseObject(t *testing.T) {
+	type prPayload struct {
+		Number int               `json:"number"`
+		Base   map[string]string `json:"base"`
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(prPayload{Number: 7, Base: map[string]string{"ref": "main"}})
+	}))
+	defer srv.Close()
+
+	c := NewClient("tok", WithBaseURL(srv.URL))
+	req, _ := c.newRequest(context.Background(), http.MethodGet, "/repos/o/pulls/7", nil, nil)
+	var got prPayload
+	if err := c.do(req, &got); err != nil {
+		t.Fatalf("object-valued base field must not be treated as an error: %v", err)
+	}
+	if got.Number != 7 || got.Base["ref"] != "main" {
+		t.Fatalf("unexpected payload: %+v", got)
+	}
+}
+
+func TestDo_errorStatusWithMessagesKey(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string][]string{"messages": {"repo is invalid"}})
+	}))
+	defer srv.Close()
+
+	c := NewClient("tok", WithBaseURL(srv.URL))
+	req, _ := c.newRequest(context.Background(), http.MethodPost, "/repos/o/issues", nil, nil)
+	err := c.do(req, nil)
+	apiErr, ok := err.(*ErrorResponse)
+	if !ok {
+		t.Fatalf("expected *ErrorResponse, got %T", err)
+	}
+	if apiErr.StatusCode != http.StatusBadRequest || apiErr.Message != "repo is invalid" {
+		t.Fatalf("unexpected error: %+v", apiErr)
+	}
+}
+
 func TestNewRequest_queryParams(t *testing.T) {
 	c := NewClient("tok", WithBaseURL("https://api.example.com"))
 	req, err := c.newRequest(context.Background(), http.MethodGet, "/items", map[string]string{"page": "2", "per_page": "10"}, nil)

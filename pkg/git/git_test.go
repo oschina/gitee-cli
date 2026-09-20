@@ -1,6 +1,7 @@
 package git
 
 import (
+	"errors"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -40,6 +41,9 @@ func TestParseRemoteURL_table(t *testing.T) {
 		{"git@gitee.com:alice/myrepo", "alice", "myrepo", false},
 		{"https://git.company.com/team/project.git", "team", "project", false},
 		{"git@git.company.com:team/project.git", "team", "project", false},
+		{"https://alice@gitee.com/alice/myrepo.git", "alice", "myrepo", false},
+		{"https://gitee.com/ent/group/repo.git", "ent/group", "repo", false},
+		{"git@gitee.com:ent/group/repo.git", "ent/group", "repo", false},
 		{"https://github.com/alice/myrepo.git", "alice", "myrepo", false},
 		{"", "", "", true},
 		{"not-a-url", "", "", true},
@@ -70,6 +74,9 @@ func TestRemoteURLPattern(t *testing.T) {
 		"git@gitee.com:foo/bar",
 		"https://git.company.com/foo/bar.git",
 		"git@git.company.com:foo/bar.git",
+		"https://alice@gitee.com/foo/bar.git",
+		"https://gitee.com/ent/group/repo.git",
+		"git@gitee.com:ent/group/repo.git",
 		"https://github.com/foo/bar.git",
 		"https://gitlab.com/foo/bar.git",
 	}
@@ -116,6 +123,79 @@ func TestGiteeRemotes_noGiteeRemote(t *testing.T) {
 	_, err := GiteeRemotes()
 	if err == nil {
 		t.Error("expected error when no git remote")
+	}
+}
+
+func TestGiteeRemotes_notAGitRepo(t *testing.T) {
+	dir := t.TempDir()
+	orig, _ := os.Getwd()
+	defer os.Chdir(orig)
+	os.Chdir(dir)
+
+	_, err := GiteeRemotes()
+	if !errors.Is(err, ErrNotGitRepo) {
+		t.Fatalf("expected ErrNotGitRepo, got %v", err)
+	}
+}
+
+func TestGiteeRemotes_unparseableRemoteEchoesURL(t *testing.T) {
+	dir := initGitRepo(t, "/tmp/local/only/repo")
+	orig, _ := os.Getwd()
+	defer os.Chdir(orig)
+	os.Chdir(dir)
+
+	_, err := GiteeRemotes()
+	if !errors.Is(err, ErrUnparseableRemote) {
+		t.Fatalf("expected ErrUnparseableRemote, got %v", err)
+	}
+	if !strings.Contains(err.Error(), "/tmp/local/only/repo") {
+		t.Fatalf("error should echo the remote URL, got %v", err)
+	}
+}
+
+func TestGiteeRemotes_singleSegmentRemoteIsUnparseable(t *testing.T) {
+	dir := initGitRepo(t, "https://gitee.com/onlyrepo")
+	orig, _ := os.Getwd()
+	defer os.Chdir(orig)
+	os.Chdir(dir)
+
+	_, err := GiteeRemotes()
+	if !errors.Is(err, ErrUnparseableRemote) {
+		t.Fatalf("expected ErrUnparseableRemote, got %v", err)
+	}
+}
+
+func TestGiteeRemotes_redactsCredentialsInError(t *testing.T) {
+	dir := initGitRepo(t, "https://oauth2:SECRETTOKEN@gitee.com")
+	orig, _ := os.Getwd()
+	defer os.Chdir(orig)
+	os.Chdir(dir)
+
+	_, err := GiteeRemotes()
+	if !errors.Is(err, ErrUnparseableRemote) {
+		t.Fatalf("expected ErrUnparseableRemote, got %v", err)
+	}
+	if strings.Contains(err.Error(), "SECRETTOKEN") {
+		t.Fatalf("error leaked credentials: %v", err)
+	}
+	if !strings.Contains(err.Error(), "***@gitee.com") {
+		t.Fatalf("expected redacted URL, got %v", err)
+	}
+}
+
+func TestGiteeRemotes_usesParseablePushURL(t *testing.T) {
+	dir := initGitRepo(t, "/tmp/local/only/repo")
+	exec.Command("git", "-C", dir, "remote", "set-url", "--push", "origin", "git@gitee.com:alice/testrepo.git").Run()
+	orig, _ := os.Getwd()
+	defer os.Chdir(orig)
+	os.Chdir(dir)
+
+	owner, repo, err := RepoFromRemote()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if owner != "alice" || repo != "testrepo" {
+		t.Fatalf("got %s/%s, want alice/testrepo", owner, repo)
 	}
 }
 
