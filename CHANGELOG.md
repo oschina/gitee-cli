@@ -5,6 +5,16 @@ format follows Keep a Changelog, and releases use Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-09-24
+
+### Fixed
+
+- Fix `gitee search repos` returning no results by switching repository search
+  to the new `/search/repos` endpoint.
+- Remove the unsupported `--owner`, `--fork`, `--sort`, and `--order` flags
+  from `gitee search repos`; use the query, `--language`, `--page`, and
+  `--limit` instead.
+
 ## [0.3.1] - 2026-09-20
 
 ### Added
