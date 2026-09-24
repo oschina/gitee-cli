@@ -22,8 +22,8 @@ metadata:
 
 ```bash
 gitee search repos gitee-cli --json --no-tui
-gitee search repos sdk --owner oschina --language Go --json --no-tui
-gitee search repos database --sort stars_count --order desc --json --no-tui
+gitee search repos sdk --language Go --json --no-tui
+gitee search repos database --limit 10 --json --no-tui
 ```
 
 **可用 flag：**
@@ -31,10 +31,6 @@ gitee search repos database --sort stars_count --order desc --json --no-tui
 | Flag | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
 | `--language` | string | — | 按编程语言过滤，如 `Go` |
-| `--owner` | string | — | 按 namespace path 过滤 |
-| `--fork` | bool | false | 包含 fork 仓库 |
-| `--sort` | string | 最佳匹配 | `last_push_at` \| `stars_count` \| `forks_count` \| `watches_count` |
-| `--order` | string | `desc` | `asc` \| `desc` |
 | `--limit` / `-l` | int | `20` | 每页数量（最大 100） |
 | `--page` / `-p` | int | `1` | 页码 |
 | `--json` / `-j` | string | — | **必须加** |
@@ -93,7 +89,7 @@ gitee search users "alice bob" --sort joined_at --json --no-tui
 
 | 用户意图 | 执行命令 |
 |---------|---------|
-| "搜仓库" / "找 X 语言的项目" | Step 1 search repos（可加 `--language` / `--owner` / `--sort`） |
+| "搜仓库" / "找 X 语言的项目" | Step 1 search repos（可加 `--language` / `--limit` / `--page`） |
 | "搜 issue" / "有没有类似的 issue" | Step 2 search issues（可加 `--repo` / `--state` / `--label`） |
 | "搜用户" / "找某个人的账号" | Step 3 search users |
 | "列出**当前仓库**的 issue" | ❌ 不属于本 skill → 用 **gitee-issue** |
@@ -103,8 +99,8 @@ gitee search users "alice bob" --sort joined_at --json --no-tui
 ## 完整示例
 
 ```bash
-# 找 Go 语言、按 star 排序的数据库相关仓库
-gitee search repos database --language Go --sort stars_count --order desc --limit 10 --json --no-tui
+# 找 Go 语言的数据库相关仓库
+gitee search repos database --language Go --limit 10 --json --no-tui
 
 # 在指定仓库里搜 open 状态、带 bug 标签的 issue
 gitee search issues 崩溃 --repo oschina/gitee --state open --label bug --json --no-tui
@@ -122,4 +118,4 @@ gitee search users oschina --json --no-tui
 | `401` | 未认证 | 提示 `gitee auth login` |
 | 返回空数组 `[]` | 没有匹配结果 | 放宽关键词或去掉部分过滤条件重试 |
 | `422` | 过滤参数取值非法 | 对照上表校正 `--sort` / `--state` / `--order` 的可选值 |
-| 结果太多不精准 | 关键词太宽泛 | 增加 `--language` / `--owner` / `--repo` 等过滤条件缩小范围 |
+| 结果太多不精准 | 关键词太宽泛 | 增加 `--language` / `--repo` 等过滤条件缩小范围 |

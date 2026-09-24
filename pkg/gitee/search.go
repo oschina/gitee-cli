@@ -4,40 +4,120 @@ import (
 	"context"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type SearchRepositoriesParams struct {
 	Query    string
-	Owner    string
-	Fork     bool
 	Language string
-	Sort     string
-	Order    string
 	Page     int
 	PerPage  int
 }
 
-func (p *SearchRepositoriesParams) toQuery() map[string]string {
-	q := searchQuery(p.Query, p.Sort, p.Order, p.Page, p.PerPage)
-	if p.Owner != "" {
-		q["owner"] = p.Owner
-	}
-	if p.Fork {
-		q["fork"] = strconv.FormatBool(p.Fork)
-	}
-	if p.Language != "" {
-		q["language"] = p.Language
-	}
-	return q
+// Indexea /search/repos response shape; mapped back into Repository below.
+type searchRepoResult struct {
+	TotalCount int              `json:"total_count"`
+	Data       []searchRepoItem `json:"data"`
+}
+
+type searchRepoItem struct {
+	ID          int      `json:"id"`
+	Name        string   `json:"name"`
+	Title       string   `json:"title"`
+	URL         string   `json:"url"`
+	Owner       string   `json:"owner"`
+	Path        string   `json:"path"`
+	Description string   `json:"description"`
+	Stars       int      `json:"stars"`
+	Forks       int      `json:"forks"`
+	License     string   `json:"license"`
+	Languages   []string `json:"languages"`
+	LastPushAt  string   `json:"last_push_at"`
+	CreatedAt   string   `json:"created_at"`
+	UpdatedAt   string   `json:"updated_at"`
 }
 
 func (c *Client) SearchRepositories(ctx context.Context, params *SearchRepositoriesParams) ([]Repository, error) {
-	req, err := c.newRequest(ctx, http.MethodGet, "/search/repositories", params.toQuery(), nil)
+	query := map[string]string{"q": params.Query}
+	if params.Language != "" {
+		query["language"] = params.Language
+	}
+	perPage := params.PerPage
+	if perPage <= 0 {
+		perPage = 20
+	}
+	if perPage > 100 {
+		perPage = 100
+	}
+	query["size"] = strconv.Itoa(perPage)
+	if params.Page > 1 {
+		query["from"] = strconv.Itoa((params.Page - 1) * perPage)
+	}
+	req, err := c.newRequest(ctx, http.MethodGet, "/search/repos", query, nil)
 	if err != nil {
 		return nil, err
 	}
-	var repos []Repository
-	return repos, c.do(req, &repos)
+	var result searchRepoResult
+	if err := c.do(req, &result); err != nil {
+		return nil, err
+	}
+	return result.toRepositories(), nil
+}
+
+func (r searchRepoResult) toRepositories() []Repository {
+	repos := make([]Repository, 0, len(r.Data))
+	for _, item := range r.Data {
+		repos = append(repos, item.toRepository())
+	}
+	return repos
+}
+
+func (i searchRepoItem) toRepository() Repository {
+	repo := Repository{
+		ID:              i.ID,
+		Name:            i.Name,
+		Path:            i.Path,
+		HumanName:       i.Title,
+		Description:     i.Description,
+		HTMLURL:         i.URL,
+		StargazersCount: i.Stars,
+		ForksCount:      i.Forks,
+		License:         i.License,
+		Namespace:       Namespace{Path: i.Owner},
+		Owner:           User{Login: i.Owner},
+		UpdatedAt:       parseIndexeaTime(i.UpdatedAt),
+		CreatedAt:       parseIndexeaTime(i.CreatedAt),
+		PushedAt:        parseIndexeaTime(i.LastPushAt),
+	}
+	repo.FullName = repoFullName(i.Owner, i.Path)
+	if len(i.Languages) > 0 {
+		repo.Language = i.Languages[0]
+	}
+	return repo
+}
+
+func repoFullName(owner, path string) string {
+	switch {
+	case owner != "" && path != "":
+		return owner + "/" + path
+	case owner != "":
+		return owner
+	case path != "":
+		return path
+	default:
+		return ""
+	}
+}
+
+func parseIndexeaTime(s string) time.Time {
+	if s == "" {
+		return time.Time{}
+	}
+	t, err := time.Parse("2006-01-02 15:04:05", s)
+	if err != nil {
+		return time.Time{}
+	}
+	return t
 }
 
 type SearchIssuesParams struct {

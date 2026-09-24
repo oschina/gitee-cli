@@ -19,19 +19,18 @@ import (
 
 func newReposCmd(f *cmdutil.Factory) *cobra.Command {
 	var opts commonOptions
-	var owner, language string
-	var includeForks bool
+	var language string
 
 	cmd := &cobra.Command{
 		Use:     "repos <query>",
 		Aliases: []string{"repo", "repositories"},
 		Short:   "Search repositories",
 		Example: `  gitee search repos gitee-cli
-  gitee search repos sdk --owner oschina --language Go
-  gitee search repos database --sort stars_count --order desc`,
+  gitee search repos sdk --language Go
+  gitee search repos database --limit 50`,
 		Args: cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			return opts.validate([]string{"last_push_at", "stars_count", "forks_count", "watches_count"})
+			return opts.validatePagination()
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client, err := f.GiteeClient()
@@ -39,8 +38,7 @@ func newReposCmd(f *cmdutil.Factory) *cobra.Command {
 				return err
 			}
 			repos, err := client.SearchRepositories(f.Context, &gitee.SearchRepositoriesParams{
-				Query: args[0], Owner: owner, Fork: includeForks, Language: language,
-				Sort: opts.sort, Order: opts.order, Page: opts.page, PerPage: opts.limit,
+				Query: args[0], Language: language, Page: opts.page, PerPage: opts.limit,
 			})
 			if err != nil {
 				return fmt.Errorf("failed to search repositories: %w", err)
@@ -67,9 +65,7 @@ func newReposCmd(f *cmdutil.Factory) *cobra.Command {
 		},
 	}
 
-	opts.addFlags(cmd, "repositories", "last_push_at, stars_count, forks_count, watches_count")
-	cmd.Flags().StringVar(&owner, "owner", "", "Filter by namespace path")
-	cmd.Flags().BoolVar(&includeForks, "fork", false, "Include forked repositories")
+	opts.addPaginationFlags(cmd, "repositories")
 	cmd.Flags().StringVar(&language, "language", "", "Filter by programming language")
 	cmd.Flags().StringVarP(&opts.jsonFields, "json", "j", "", cmdutil.JSONFlagHelp[gitee.Repository]())
 	cmd.Flags().Lookup("json").NoOptDefVal = "*"

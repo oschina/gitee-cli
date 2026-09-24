@@ -77,7 +77,7 @@ gitee pr list --base main --labels bug,performance \
 gitee issue list --sort updated --direction asc
 
 # Search across Gitee repositories and issues.
-gitee search repos cli --language Go --sort stars_count
+gitee search repos cli --language Go
 gitee search issues timeout --repo owner/repo --state open
 
 # Fetch a PR without switching branches.

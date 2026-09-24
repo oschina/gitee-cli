@@ -10,28 +10,55 @@ import (
 
 func TestSearchRepositories(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/search/repositories" {
-			t.Fatalf("path = %q, want /search/repositories", r.URL.Path)
+		if r.URL.Path != "/search/repos" {
+			t.Fatalf("path = %q, want /search/repos", r.URL.Path)
 		}
 		want := map[string]string{
-			"q": "cli", "owner": "oschina", "fork": "true", "language": "Go",
-			"sort": "stars_count", "order": "asc", "page": "2", "per_page": "50",
+			"q": "cli", "language": "Go", "size": "50", "from": "50",
 		}
 		assertQuery(t, r, want)
-		json.NewEncoder(w).Encode([]Repository{{FullName: "oschina/gitee-cli"}})
+		for _, key := range []string{"owner", "fork", "sort", "order", "page", "per_page"} {
+			if got := r.URL.Query().Get(key); got != "" {
+				t.Errorf("query %s = %q, want empty", key, got)
+			}
+		}
+		json.NewEncoder(w).Encode(searchRepoResult{
+			TotalCount: 1,
+			Data: []searchRepoItem{{
+				ID: 1, Name: "gitee-cli", Title: "oschina/gitee-cli",
+				URL: "https://gitee.com/oschina/gitee-cli", Owner: "oschina", Path: "gitee-cli",
+				Description: "Gitee CLI", Stars: 42, Forks: 5, License: "MIT",
+				Languages: []string{"Go"}, UpdatedAt: "2026-09-24 10:00:00",
+			}},
+		})
 	}))
 	defer server.Close()
 
 	client := NewClient("token", WithBaseURL(server.URL))
 	repos, err := client.SearchRepositories(context.Background(), &SearchRepositoriesParams{
-		Query: "cli", Owner: "oschina", Fork: true, Language: "Go",
-		Sort: "stars_count", Order: "asc", Page: 2, PerPage: 50,
+		Query: "cli", Language: "Go", Page: 2, PerPage: 50,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(repos) != 1 || repos[0].FullName != "oschina/gitee-cli" {
-		t.Fatalf("unexpected repositories: %#v", repos)
+	if len(repos) != 1 {
+		t.Fatalf("unexpected repository count: %d", len(repos))
+	}
+	repo := repos[0]
+	if repo.FullName != "oschina/gitee-cli" {
+		t.Errorf("FullName = %q, want oschina/gitee-cli", repo.FullName)
+	}
+	if repo.HTMLURL != "https://gitee.com/oschina/gitee-cli" {
+		t.Errorf("HTMLURL = %q, want https://gitee.com/oschina/gitee-cli", repo.HTMLURL)
+	}
+	if repo.StargazersCount != 42 {
+		t.Errorf("StargazersCount = %d, want 42", repo.StargazersCount)
+	}
+	if repo.Language != "Go" {
+		t.Errorf("Language = %q, want Go", repo.Language)
+	}
+	if repo.UpdatedAt.IsZero() {
+		t.Error("UpdatedAt is zero")
 	}
 }
 

@@ -73,7 +73,7 @@ gitee pr list --base main --labels bug,performance \
 gitee issue list --sort updated --direction asc
 
 # 在 Gitee 全站搜索仓库和 Issue。
-gitee search repos cli --language Go --sort stars_count
+gitee search repos cli --language Go
 gitee search issues timeout --repo owner/repo --state open
 
 # 仅拉取 PR，不切换分支。

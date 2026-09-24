@@ -162,7 +162,7 @@ gitee pr create --help              # 具体 flag（--json 可选字段也会列
 gitee pr list -R owner/repo -s open --json --no-tui
 gitee pr view 42 -R owner/repo --json --no-tui
 gitee issue list -s open --sort updated --direction asc --no-tui
-gitee search repos "cli" --language Go --sort stars_count --no-tui
+gitee search repos "cli" --language Go --no-tui
 gitee api /user --no-tui
 gitee api -X POST /repos/owner/repo/issues -f title="Bug" -f body="Details" --no-tui
 ```

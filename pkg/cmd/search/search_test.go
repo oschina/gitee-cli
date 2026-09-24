@@ -26,13 +26,18 @@ func TestReposCommand(t *testing.T) {
 	var query map[string]string
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		query = firstQueryValues(r)
-		json.NewEncoder(w).Encode([]gitee.Repository{{
-			FullName: "oschina/gitee-cli", Description: "Gitee CLI", Language: "Go", StargazersCount: 42,
-		}})
+		json.NewEncoder(w).Encode(map[string]any{
+			"total_count": 1,
+			"data": []map[string]any{{
+				"id": 1, "name": "gitee-cli", "title": "oschina/gitee-cli",
+				"url": "https://gitee.com/oschina/gitee-cli", "owner": "oschina", "path": "gitee-cli",
+				"description": "Gitee CLI", "stars": 42, "forks": 5, "license": "MIT",
+				"languages": []string{"Go"}, "updated_at": "2026-09-24 10:00:00",
+			}},
+		})
 	})
 	out, err := runSearchCmd(t, []string{
-		"repos", "cli", "--owner", "oschina", "--fork", "--language", "Go",
-		"--sort", "stars_count", "--order", "asc", "--page", "2", "--limit", "50",
+		"repos", "cli", "--language", "Go", "--page", "2", "--limit", "50",
 	}, handler)
 	if err != nil {
 		t.Fatal(err)
@@ -41,10 +46,14 @@ func TestReposCommand(t *testing.T) {
 		t.Fatalf("unexpected output: %s", out)
 	}
 	want := map[string]string{
-		"q": "cli", "owner": "oschina", "fork": "true", "language": "Go",
-		"sort": "stars_count", "order": "asc", "page": "2", "per_page": "50",
+		"q": "cli", "language": "Go", "size": "50", "from": "50",
 	}
 	assertValues(t, query, want)
+	for _, key := range []string{"owner", "fork", "sort", "order", "page", "per_page"} {
+		if _, ok := query[key]; ok {
+			t.Errorf("query contains removed key %q: %v", key, query)
+		}
+	}
 }
 
 func TestIssuesCommand(t *testing.T) {
@@ -92,6 +101,7 @@ func TestSearchValidation(t *testing.T) {
 		want string
 	}{
 		{[]string{"repos", "cli", "--limit", "101"}, "--limit must be between 1 and 100"},
+		{[]string{"repos", "cli", "--owner", "oschina"}, "unknown flag"},
 		{[]string{"issues", "bug", "--state", "unknown"}, "--state must be one of"},
 		{[]string{"users", "alice", "--sort", "stars_count"}, "--sort must be one of"},
 	}
