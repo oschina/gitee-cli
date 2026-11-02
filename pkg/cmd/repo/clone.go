@@ -12,6 +12,7 @@ import (
 
 	"gitee.com/oschina/gitee-cli/internal/config"
 	"gitee.com/oschina/gitee-cli/pkg/cmdutil"
+	"gitee.com/oschina/gitee-cli/pkg/git"
 )
 
 func newRepoCloneCmd(f *cmdutil.Factory) *cobra.Command {
@@ -32,37 +33,18 @@ Use --ssh to clone via SSH instead.
 
 Supports full URLs (https://... or git@...) as well as owner/repo format.
 When using owner/repo format, the hostname is inferred from --hostname
-or the default gitee.com.`,
+or the default gitee.com.
+
+HTTPS URLs use the stored token for the URL's host when one is available.`,
 		Example: `  gitee repo clone owner/repo
   gitee repo clone owner/repo --ssh
   gitee repo clone owner/repo --branch develop --depth 1
   gitee repo clone https://github.com/owner/repo.git`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			input := args[0]
-
-			var cloneURL string
-			var cloneEnv []string
-			if strings.Contains(input, "://") || strings.HasPrefix(input, "git@") {
-				cloneURL = input
-			} else {
-				parts := splitOwnerRepo(input)
-				if parts == nil {
-					return fmt.Errorf("invalid format, expected owner/repo")
-				}
-				hostname := f.Hostname
-				if hostname == "" {
-					hostname = config.DefaultHost
-				}
-				if useSSH {
-					cloneURL = fmt.Sprintf("git@%s:%s/%s.git", hostname, parts[0], parts[1])
-				} else {
-					token, err := config.TokenForHost(hostname)
-					if err == nil && token != "" {
-						cloneEnv = gitHTTPSAuthEnv(hostname, token)
-					}
-					cloneURL = fmt.Sprintf("https://%s/%s/%s.git", hostname, parts[0], parts[1])
-				}
+			cloneURL, cloneEnv, err := resolveCloneTarget(f, args[0], useSSH)
+			if err != nil {
+				return err
 			}
 
 			gitArgs := []string{"clone", cloneURL}
@@ -96,6 +78,42 @@ or the default gitee.com.`,
 	cmd.Flags().StringVar(&depthRaw, "depth", "", "Create a shallow clone with the specified commit depth")
 	cmd.Flags().StringVar(&dir, "dir", "", "Clone into this directory instead of the default")
 	return cmd
+}
+
+// resolveCloneTarget turns the clone argument into the git clone URL and the
+// optional environment that authenticates it. URL inputs are passed through
+// unchanged; owner/repo inputs are expanded against the factory hostname.
+func resolveCloneTarget(f *cmdutil.Factory, input string, useSSH bool) (cloneURL string, cloneEnv []string, err error) {
+	if strings.Contains(input, "://") || strings.HasPrefix(input, "git@") {
+		cloneURL = input
+		// The extraHeader config key is scoped to https:// URLs, so http URLs
+		// intentionally fall through to git's normal credential handling.
+		if host, ok := git.HTTPRemoteHost(input); ok && !useSSH &&
+			strings.HasPrefix(strings.ToLower(input), "https://") {
+			token, tokenErr := config.TokenForHost(host)
+			if tokenErr == nil && token != "" {
+				cloneEnv = gitHTTPSAuthEnv(host, token)
+			}
+		}
+		return cloneURL, cloneEnv, nil
+	}
+
+	parts := splitOwnerRepo(input)
+	if parts == nil {
+		return "", nil, fmt.Errorf("invalid format, expected owner/repo")
+	}
+	hostname := f.Hostname
+	if hostname == "" {
+		hostname = config.DefaultHost
+	}
+	if useSSH {
+		return fmt.Sprintf("git@%s:%s/%s.git", hostname, parts[0], parts[1]), nil, nil
+	}
+	token, err := config.TokenForHost(hostname)
+	if err == nil && token != "" {
+		cloneEnv = gitHTTPSAuthEnv(hostname, token)
+	}
+	return fmt.Sprintf("https://%s/%s/%s.git", hostname, parts[0], parts[1]), cloneEnv, nil
 }
 
 // gitHTTPSAuthEnv passes an HTTP Basic header through Git's environment-only

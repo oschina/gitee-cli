@@ -23,6 +23,21 @@ import (
 // recognised as well.
 var remoteURLPattern = regexp.MustCompile(`(?:https?://|git@)(?:[^@/]+@)?([a-zA-Z0-9.-]+)[:/](.+?)(?:\.git)?$`)
 
+// httpRemoteURLPattern matches HTTP(S) git remote URLs and captures only the
+// host. The scheme is matched case-insensitively so "HTTPS://" is accepted.
+//
+// Supported forms:
+//
+//	http://<host>/<path>
+//	https://<host>/<path>
+//	https://<userinfo>@<host>/<path>
+//
+// Ports are intentionally not matched: a URL such as
+// "https://<host>:8443/<owner>/<repo>" is treated as unknown because token
+// injection is keyed by the bare host, and a non-default port signals an
+// endpoint that cannot be authenticated safely with a per-host token.
+var httpRemoteURLPattern = regexp.MustCompile(`(?i)^https?://(?:[^@/]+@)?([a-zA-Z0-9.-]+)/.+$`)
+
 // ErrNotGitRepo reports that the current directory is not inside a git
 // repository (or git is unavailable).
 var ErrNotGitRepo = errors.New("not a git repository (or git is not installed)")
@@ -101,6 +116,25 @@ func FetchPR(remoteURL string, number int, localBranch string) error {
 		return fmt.Errorf("git fetch failed: %w\n%s", err, strings.TrimSpace(string(out)))
 	}
 	return nil
+}
+
+// HTTPRemoteHost returns the host portion of an HTTP(S) git remote URL.
+//
+// It matches "http://<host>/<path>" and "https://<host>/<path>" URLs, with an
+// optional "user@<host>" userinfo prefix and an optional ".git" path suffix.
+// The scheme is matched case-insensitively.
+//
+// It reports ok=false for SCP-style SSH ("git@<host>:<path>"), "ssh://",
+// "git://", "file://", local filesystem paths, URLs with no path (for example
+// "https://gitee.com"), and URLs with an explicit port (for example
+// "https://gitee.com:8443/<owner>/<repo>"). Ports are intentionally not
+// matched because token injection is keyed by the bare host.
+func HTTPRemoteHost(rawURL string) (host string, ok bool) {
+	m := httpRemoteURLPattern.FindStringSubmatch(rawURL)
+	if m == nil {
+		return "", false
+	}
+	return m[1], true
 }
 
 func parseRemoteURL(rawURL string) (owner, repo string, err error) {

@@ -112,6 +112,92 @@ func TestParseRemoteURL(t *testing.T) {
 	}
 }
 
+func TestHTTPRemoteHost(t *testing.T) {
+	cases := []struct {
+		name     string
+		url      string
+		wantHost string
+		wantOK   bool
+	}{
+		{
+			name:     "https basic",
+			url:      "https://gitee.com/owner/repo",
+			wantHost: "gitee.com",
+			wantOK:   true,
+		},
+		{
+			name:     "https with .git",
+			url:      "https://gitee.com/owner/repo.git",
+			wantHost: "gitee.com",
+			wantOK:   true,
+		},
+		{
+			name:     "https with userinfo",
+			url:      "https://user@gitee.com/owner/repo",
+			wantHost: "gitee.com",
+			wantOK:   true,
+		},
+		{
+			name:     "http",
+			url:      "http://gitee.com/owner/repo",
+			wantHost: "gitee.com",
+			wantOK:   true,
+		},
+		{
+			name:     "uppercase scheme",
+			url:      "HTTPS://gitee.com/owner/repo",
+			wantHost: "gitee.com",
+			wantOK:   true,
+		},
+		{
+			name:     "private host",
+			url:      "https://git.example.com/group/repo",
+			wantHost: "git.example.com",
+			wantOK:   true,
+		},
+		{
+			name: "scp style SSH",
+			url:  "git@gitee.com:owner/repo.git",
+		},
+		{
+			name: "ssh scheme",
+			url:  "ssh://git@gitee.com/owner/repo.git",
+		},
+		{
+			name: "git scheme",
+			url:  "git://gitee.com/owner/repo.git",
+		},
+		{
+			name: "file scheme",
+			url:  "file:///path/to/repo",
+		},
+		{
+			name: "port URL",
+			url:  "https://gitee.com:8443/owner/repo",
+		},
+		{
+			name: "no path",
+			url:  "https://gitee.com",
+		},
+		{
+			name: "empty string",
+			url:  "",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			host, ok := HTTPRemoteHost(tc.url)
+			if ok != tc.wantOK {
+				t.Fatalf("ok: want %v, got %v", tc.wantOK, ok)
+			}
+			if host != tc.wantHost {
+				t.Errorf("host: want %q, got %q", tc.wantHost, host)
+			}
+		})
+	}
+}
+
 func TestGiteeRemotes_parseOnly(t *testing.T) {
 	cases := []struct {
 		url   string
