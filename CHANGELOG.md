@@ -5,6 +5,16 @@ format follows Keep a Changelog, and releases use Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.3.3] - 2026-11-02
+
+### Fixed
+
+- Authenticate `gitee repo clone` for full HTTPS URLs by looking up the stored
+  token for the URL host, so private repositories no longer fall back to
+  interactive credential prompts.
+- Keep SSH URLs, HTTP URLs, port-qualified HTTPS URLs, and hosts without a
+  stored token on Git's default credential handling.
+
 ## [0.3.2] - 2026-09-24
 
 ### Fixed
